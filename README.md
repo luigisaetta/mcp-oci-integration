@@ -1,10 +1,10 @@
 # MCP Oracle OCI integrations
 This repository contains code and examples to help in the following tasks:
-* Develop MCP servers in Python
-* Run MCP servers on Oracle OCI
-* Integrate MCP servers with AI Agents
-* Integrate MCP servers with OCI resources (ADB, Select AI, ...)
-* Integrate MCP Servers running on OCI with AI Assistants like ChatGPT, Claude.ai, MS Copilot
+* **Develop** MCP servers in **Python**
+* **Run** MCP servers on **Oracle OCI**
+* **Integrate** MCP servers with **AI Agents**
+* **Integrate** MCP servers with **OCI resources** (ADB, Select AI, ...)
+* **Integrate** MCP Servers running on OCI with AI Assistants like **ChatGPT**, Claude.ai, MS Copilot
 
 ![MCP console](./images/mcp_cli.png)
 
