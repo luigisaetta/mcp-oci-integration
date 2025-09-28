@@ -1,3 +1,3 @@
 # Integrate with ChatGPT
 
-## OpenAI specification is available [here](https://platform.openai.com/docs/mcp#create-an-mcp-server)
+**OpenAI** specification is available [here](https://platform.openai.com/docs/mcp#create-an-mcp-server)
