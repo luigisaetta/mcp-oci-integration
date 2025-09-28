@@ -55,10 +55,15 @@ Just to mention few important points:
 * You want to authenticate and authorize the clients
 * You don't want to expose directly the MCP server over Internet
 
-Using OCI services there are several things you can do to get the right level of security:
+Using **OCI services** there are several things you can do to get the right level of security:
 * You can put an **OCI API Gateway** in front, using it as TLS termination
 * You can enable authentication using **JWT** tokens
-* You can use **OCI IAM** to generate **JWT* tokens
+* You can use **OCI IAM** to generate **JWT** tokens
 * You can use OCI netwrok security
 
 More details in a dedicate page.
+
+## Integrate MCP Semantic Search with ChatGPT
+If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) server you can test teh integration with **ChatGPT** in **Developer Mode**.
+
+Soon, I'll add a server fully compliant with OpenAI specifications, that can be integrated in **Deep Research**.
