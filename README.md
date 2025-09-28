@@ -6,6 +6,8 @@ This repository contains code and examples to help in the following tasks:
 * Integrate MCP servers with OCI resources (ADB, Select AI, ...)
 * Integrate MCP Servers running on OCI with AI Assistants like ChatGPT, Claude.ai, MS Copilot
 
+![MCP console](./images/mcp_cli.png)
+
 ## What is MCP?
 **MCP (Model Context Protocol)** is an **open-source standard** that lets AI models (e.g. LLMs or agents) connect bidirectionally with external tools, data sources, and services via a unified interface. 
 
@@ -25,5 +27,7 @@ The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/we
 **Examples**:
 * in [Minimal MCP Server](./minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect it using JWT.
 
-If you want to start with something simpler, have a look at [how to start developing MCP](./how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
+If you want to start with **something simpler**, have a look at [how to start developing MCP](./how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
+
+## 
 
