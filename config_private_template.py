@@ -1,12 +1,13 @@
 """
 Private config
 """
+
 #
 VECTOR_DB_USER = "your-db-user"
 VECTOR_DB_PWD = "your-db-pwd"
 
 VECTOR_WALLET_PWD = "wallet-pwd"
-VECTOR_DSN = db-psn"
+VECTOR_DSN = "db-psn"
 VECTOR_WALLET_DIR = "/Users/xxx/yyy"
 
 CONNECT_ARGS = {
