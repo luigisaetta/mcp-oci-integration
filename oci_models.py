@@ -5,7 +5,7 @@ Date last modified: 2025-06-30
 Python Version: 3.11
 
 Description:
-    This module enables easy access to OCI GenAI LLM.
+    This module enables easy access to OCI GenAI LLM/Embeddings.
 
 
 Usage:
@@ -30,7 +30,7 @@ Warnings:
 from langchain_oci import ChatOCIGenAI
 from langchain_oci import OCIGenAIEmbeddings
 from langchain_community.vectorstores.utils import DistanceStrategy
-from langchain_community.vectorstores.oraclevs import OracleVS
+from langchain_oracledb.vectorstores import OracleVS
 
 from custom_rest_embeddings import CustomRESTEmbeddings
 from utils import get_console_logger

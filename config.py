@@ -26,7 +26,7 @@ Warnings:
 
 DEBUG = False
 
-# type of auth
+# type of OCI auth
 AUTH = "API_KEY"
 
 # embeddings
@@ -53,10 +53,6 @@ REGION = "eu-frankfurt-1"
 # REGION = "us-chicago-1"
 SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 
-# for the UI
-LANGUAGE_LIST = ["same as the question", "en", "fr", "it", "es"]
-# replaced command-r with command-a
-
 if REGION == "us-chicago-1":
     # for now only available in chicago region
     MODEL_LIST = [
@@ -79,7 +75,6 @@ else:
 
 # semantic search
 TOP_K = 6
-# COLLECTION_LIST = ["BOOKS", "CNAF"]
 COLLECTION_LIST = ["BOOKS", "NVIDIA_BOOKS2"]
 DEFAULT_COLLECTION = "BOOKS"
 

@@ -22,8 +22,7 @@ st.title("🛠️ LLM powered by MCP")
 with st.sidebar:
     st.header("Connection")
     mcp_url = st.text_input("MCP URL", value=MCP_SERVERS_CONFIG["default"]["url"])
-    # cohere.command-a-03-2025
-    # xai.grok-3
+
     model_id = st.selectbox(
         "Model",
         [
@@ -31,7 +30,6 @@ with st.sidebar:
             "xai.grok-3",
             "openai.gpt-4.1",
             "openai.gpt-5",
-            "openai.gpt-oss-120b",
         ],
         index=0,
     )
