@@ -40,10 +40,10 @@ In the Streamlit application, you can:
 In [llm_with_mcp.py](./llm_with_mcp.py) there is the complete implementation of the tool calling loop.
 
 ## Semantic Search
-In this repository there is a complete implementation of an MCP server implementing **Semantic Search** on top of **Oracle 23AI**.
-You need only:
+In this repository there is a **complete implementation of an MCP server** implementing **Semantic Search** on top of **Oracle 23AI**.
+To use it, you need only:
 * To load the documents in the Oracle DB
 * To put the right configuration, to connect to DB, in config_private.py.
 
-It is wip... coming soon.
+The code is available [here](./mcp_semantic_search_with_iam.py). 
 
