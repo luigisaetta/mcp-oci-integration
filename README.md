@@ -64,7 +64,7 @@ Using **OCI services** there are several things you can do to get the right leve
 More details in a dedicate page.
 
 ## Integrate MCP Semantic Search with ChatGPT
-If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) server you can test the integration with **ChatGPT** in **Developer Mode**. It provides a **search** compliant with OpenAI specs. 
+If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) server you can test the integration with **ChatGPT** in **Developer Mode**. It provides a **search** tool, compliant with **OpenAI** specs. 
 
-Soon, we'll add a server fully compliant with OpenAI specifications, that can be integrated in **Deep Research**. The server must implement two methods (**search** and **fetch**) with a different behaviour, following srictly OpenAI specs.
+Soon, we'll add a server fully compliant with **OpenAI** specifications, that can be integrated in **Deep Research**. The server must implement two methods (**search** and **fetch**) with a different behaviour, following srictly OpenAI specs.
 
