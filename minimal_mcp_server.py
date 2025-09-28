@@ -41,7 +41,7 @@ if ENABLE_JWT_TOKEN:
         audience=AUDIENCE,
     )
 
-mcp = FastMCP("MCP server with few lines of code", auth=AUTH)
+mcp = FastMCP("OCI MCP server with few lines of code", auth=AUTH)
 
 
 #

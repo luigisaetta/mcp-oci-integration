@@ -30,18 +30,20 @@ The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/we
 If you want to start with **something simpler**, have a look at [how to start developing MCP](./how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
 
 ## How to test
-If you want to quickly test the MCP server you have developed (or the minimal example provided here) you can use the [Streamlit UI](./ui_mcp_agent.py).
+If you want to quickly test the MCP server you developed (or the minimal example provided here) you can use the [Streamlit UI](./ui_mcp_agent.py).
 
 In the Streamlit application, you can:
 * Specify the URL of the MCP server (default is in [mcp_servers_config.py](./mcp_servers_config.py))
 * Select one of models available in OCI Generative AI
-* test making questions answered using the tools exposed by the MCP server.
+* Test making questions answered using the tools exposed by the MCP server.
 
 In [llm_with_mcp.py](./llm_with_mcp.py) there is the complete implementation of the tool calling loop.
 
 ## Semantic Search
-In this repository there is a complete implementation of an MCP server implementing Semantic Search on top of Oracle 23AI.
-You need only to oad the documents in the Oracle DB and put the right configuration, to connect to DB, in config_private.py.
+In this repository there is a complete implementation of an MCP server implementing **Semantic Search** on top of **Oracle 23AI**.
+You need only:
+* To load the documents in the Oracle DB
+* To put the right configuration, to connect to DB, in config_private.py.
 
 It is wip... coming soon.
 
