@@ -35,7 +35,7 @@ if ENABLE_JWT_TOKEN:
     # check that a valid JWT token is provided
     AUTH = JWTVerifier(
         # this is the url to get the public key from IAM
-        # the PK is usedd to check the JWT
+        # the PK is used to check the JWT
         jwks_uri=f"{IAM_BASE_URL}/admin/v1/SigningCert/jwk",
         issuer=ISSUER,
         audience=AUDIENCE,

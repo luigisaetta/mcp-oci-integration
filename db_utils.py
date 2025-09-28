@@ -87,3 +87,32 @@ def list_books_in_collection(collection_name: str) -> list:
                 list_books.append((row[0], row[1]))
 
     return sorted(list_books)
+
+
+def fetch_text_by_id(id: str, collection_name: str) -> str:
+    """
+    Given the ID of a chunk return the text
+    """
+    query = """
+    SELECT TEXT, json_value(METADATA, '$.source')
+    FROM {collection_name}
+    WHERE ID = :id
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                query.format(collection_name=collection_name),
+                {"id": id},
+            )
+
+            row = cursor.fetchone()
+            if row:
+                clob = row[0]
+                text_value = clob.read() if clob is not None else None
+                source = row[1]
+            else:
+                source = None
+                text_value = None
+
+    return {"text_value": text_value, "source": source}

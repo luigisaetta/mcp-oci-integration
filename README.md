@@ -68,5 +68,7 @@ If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) serve
 
 Soon, we'll add a server fully compliant with **OpenAI** specifications, that can be integrated in **Deep Research**. The server must implement two methods (**search** and **fetch**) with a different behaviour, following srictly OpenAI specs.
 
+An initial implementation is available [here](./mcp_deep_research_with_iam.py)
+
 Details available [here](./integrate_chatgpt.md)
 
