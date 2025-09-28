@@ -32,7 +32,6 @@ with st.sidebar:
             "openai.gpt-4.1",
             "openai.gpt-5",
             "openai.gpt-oss-120b",
-            "meta.llama-3.3-70b-instruct",
         ],
         index=0,
     )
@@ -104,14 +103,14 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("Thinking with support from MCP tools…"):
                 try:
-                    answer = asyncio.run(
+                    ANSWER = asyncio.run(
                         # we pass also the history (chat)
                         st.session_state.agent.answer(prompt, st.session_state.chat)
                     )
                 except Exception as e:
-                    answer = f"Error: {e}"
-                st.write(answer)
-                st.session_state.chat.append({"role": "assistant", "content": answer})
+                    ANSWER = f"Error: {e}"
+                st.write(ANSWER)
+                st.session_state.chat.append({"role": "assistant", "content": ANSWER})
 
 # ---------- The small debug panel in the bottom ----------
 with st.expander("🔎 Debug / State"):

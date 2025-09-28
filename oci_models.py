@@ -37,7 +37,6 @@ from utils import get_console_logger
 from config import (
     AUTH,
     SERVICE_ENDPOINT,
-    COMPARTMENT_ID,
     # used only for defaults
     LLM_MODEL_ID,
     TEMPERATURE,
@@ -45,7 +44,7 @@ from config import (
     EMBED_MODEL_ID,
     NVIDIA_EMBED_MODEL_URL,
 )
-
+from config_private import COMPARTMENT_ID
 
 logger = get_console_logger()
 
@@ -59,19 +58,6 @@ MODELS_WITHOUT_KWARGS = {
 }
 
 
-def normalize_provider(model_id: str) -> str:
-    """
-    apply an hack to handle new models:
-    use meta as provider for these new models
-    """
-    _provider = model_id.split(".")[0]
-
-    if _provider in {"xai", "openai", "meta"}:
-        # Known LangChain limitation workaround
-        _provider = "meta"
-    return _provider
-
-
 def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKENS):
     """
     Initialize and return an instance of ChatOCIGenAI with the specified configuration.
@@ -79,9 +65,6 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
     Returns:
         ChatOCIGenAI: An instance of the OCI GenAI language model.
     """
-    # try to identify the provider
-    _provider = normalize_provider(model_id)
-
     if model_id not in MODELS_WITHOUT_KWARGS:
         _model_kwargs = {
             "temperature": temperature,
@@ -96,10 +79,9 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
         model_id=model_id,
         service_endpoint=SERVICE_ENDPOINT,
         compartment_id=COMPARTMENT_ID,
-        # changed to solve Mtea/OpenAI issue
+        # changed to solve OpenAI issue
         is_stream=False,
         model_kwargs=_model_kwargs,
-        # provider=_provider,
     )
     return llm
 

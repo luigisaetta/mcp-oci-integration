@@ -74,8 +74,10 @@ def default_jwt_supplier() -> str:
         token = None
     return token
 
+
 # mappings for schema to pyd
 _JSON_TO_PY = {"string": str, "integer": int, "number": float, "boolean": bool}
+
 
 # patch for OpenAI, xAI
 def schemas_to_pydantic_models(schemas: List[Dict[str, Any]]) -> List[type[BaseModel]]:

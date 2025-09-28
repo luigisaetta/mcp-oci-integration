@@ -35,14 +35,12 @@ AUTH = "API_KEY"
 EMBED_MODEL_TYPE = "OCI"
 # EMBED_MODEL_TYPE = "NVIDIA"
 EMBED_MODEL_ID = "cohere.embed-multilingual-v3.0"
-# EMBED_MODEL_ID = "cohere.embed-multilingual-image-v3.0"
 
 # this one needs to specify the dimension, default is 1536
 # EMBED_MODEL_ID = "cohere.embed-v4.0"
+# used only for NVIDIA models
+NVIDIA_EMBED_MODEL_URL = ""
 
-# to support NVIDIA NIM
-NVIDIA_EMBED_MODEL_URL = "http://130.61.225.137:8000/v1/embeddings"
-# EMBED_MODEL_ID = "nvidia/llama-3.2-nv-embedqa-1b-v2"
 
 # LLM
 # this is the default model
@@ -53,7 +51,6 @@ MAX_TOKENS = 4000
 # OCI general
 REGION = "eu-frankfurt-1"
 # REGION = "us-chicago-1"
-COMPARTMENT_ID = "ocid1.compartment.oc1..aaaaaaaaushuwb2evpuf7rcpl4r7ugmqoe7ekmaiik3ra3m7gec3d234eknq"
 SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 
 # for the UI
@@ -80,8 +77,6 @@ else:
         "openai.gpt-5",
     ]
 
-ENABLE_USER_FEEDBACK = True
-
 # semantic search
 TOP_K = 6
 # COLLECTION_LIST = ["BOOKS", "CNAF"]
@@ -95,14 +90,6 @@ MAX_MSGS_IN_HISTORY = 6
 
 # reranking enabled or disabled from UI
 
-# Integration with APM
-ENABLE_TRACING = False
-AGENT_NAME = "OCI_CUSTOM_RAG_AGENT"
-
-# lsaetta-apm compartment
-APM_BASE_URL = "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.oci.oraclecloud.com/20200101"
-APM_CONTENT_TYPE = "application/json"
-
 # for loading
 CHUNK_SIZE = 4000
 CHUNK_OVERLAP = 100
@@ -112,9 +99,11 @@ TRANSPORT = "streamable-http"
 # bind to all interfaces
 HOST = "0.0.0.0"
 PORT = 9000
+
 # with this we can toggle JWT token auth
-ENABLE_JWT_TOKEN = True
+ENABLE_JWT_TOKEN = False
 # for JWT token with OCI
+# put your domain URL here
 IAM_BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
 # these are used during the verification of the token
 ISSUER = "https://identity.oraclecloud.com/"
