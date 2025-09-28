@@ -11,7 +11,7 @@ from fastmcp import FastMCP
 
 from config import (
     TRANSPORT,
-    # needed only if transport is stremable-http
+    # needed only if transport is streamable-http
     HOST,
     PORT,
 )

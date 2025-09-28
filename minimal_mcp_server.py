@@ -1,7 +1,7 @@
 """
 Minimal MCP server
 
-This should be the starting point for any MCP server built with Fastmcp.
+This should be the starting point for any MCP server built with FastMCP.
 This is the version with new FastMCP library.
 Biggest difference: the class used to verify JWT.
 """
@@ -20,7 +20,7 @@ from config import (
     ISSUER,
     AUDIENCE,
     TRANSPORT,
-    # needed only if transport is stremable-http
+    # needed only if transport is streamable-http
     HOST,
     PORT,
 )
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         # stdio doesn’t support host/port args
         mcp.run(transport=TRANSPORT)
     else:
-        # For http/streamable-http transport, host/port are valid
+        # For streamable-http transport, host/port are valid
         mcp.run(
             transport=TRANSPORT,
             host=HOST,
