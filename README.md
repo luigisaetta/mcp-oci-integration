@@ -47,3 +47,18 @@ To use it, you need only:
 
 The code is available [here](./mcp_semantic_search_with_iam.py). 
 
+## Adding security
+If you want to put your **MCP** server in production, you need to add security, at several levels.
+
+Just to mention few important points:
+* The communication with the MCP server must be encrypted (i.e: using TLS)
+* You want to authenticate and authorize the clients
+* You don't want to expose directly the MCP server over Internet
+
+Using OCI services there are several things you can do to get the right level of security:
+* You can put an **OCI API Gateway** in front, using it as TLS termination
+* You can enable authentication using **JWT** tokens
+* You can use **OCI IAM** to generate **JWT* tokens
+* You can use OCI netwrok security
+
+More details in a dedicate page.
