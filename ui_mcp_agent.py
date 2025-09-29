@@ -37,7 +37,6 @@ with st.sidebar:
         "Timeout (s)", min_value=5, max_value=300, value=60, step=5
     )
 
-    st.caption("JWT will be fetched on each call via default_jwt_supplier()")
     connect = st.button("🔌 Connect / Reload tools", use_container_width=True)
 
 # ---------- Session state ----------

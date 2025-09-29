@@ -29,7 +29,7 @@ from db_utils import (
     list_books_in_collection,
     fetch_text_by_id,
 )
-from config import EMBED_MODEL_TYPE
+from config import EMBED_MODEL_TYPE, DEFAULT_COLLECTION
 from config import DEBUG, IAM_BASE_URL, ENABLE_JWT_TOKEN, ISSUER, AUDIENCE
 from config import TRANSPORT, HOST, PORT
 
@@ -86,7 +86,7 @@ def get_collections() -> list:
 def get_books_in_collection(
     collection_name: Annotated[
         str, Field(description="The name of the collection (DB table) to search in.")
-    ] = "BOOKS",
+    ] = DEFAULT_COLLECTION,
 ) -> list:
     """
     Get the list of books in a specific collection.
@@ -115,7 +115,7 @@ def search(
     top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 10,
     collection_name: Annotated[
         str, Field(description="The name of DB table")
-    ] = "BOOKS",
+    ] = DEFAULT_COLLECTION,
 ) -> dict:
     """
     Perform a deep search based on the provided query.
@@ -171,7 +171,12 @@ def search(
 
 
 @mcp.tool
-def fetch(id: str, collection_name: str = "BOOKS") -> Dict[str, Any]:
+def fetch(
+    id: Annotated[
+        str, Field(description="The ID of the document as returned by search call.")
+    ],
+    collection_name: str = DEFAULT_COLLECTION,
+) -> Dict[str, Any]:
     """
     Retrieve complete document content by ID for detailed
     analysis and citation. This tool fetches the full document
@@ -180,7 +185,7 @@ def fetch(id: str, collection_name: str = "BOOKS") -> Dict[str, Any]:
     information for analysis and proper citation.
 
     Args:
-        id: doc ID from vector store
+        id: doc ID from Vector Store. It is the value retrieved by search, NOT the document name.
 
     Returns:
         Complete document with id, title, full text content,

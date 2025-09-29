@@ -18,7 +18,7 @@ from fastmcp.server.dependencies import get_http_headers
 from utils import get_console_logger
 from oci_models import get_embedding_model, get_oracle_vs
 from db_utils import get_connection, list_collections, list_books_in_collection
-from config import EMBED_MODEL_TYPE
+from config import EMBED_MODEL_TYPE, DEFAULT_COLLECTION
 from config import DEBUG, IAM_BASE_URL, ENABLE_JWT_TOKEN, ISSUER, AUDIENCE
 from config import TRANSPORT, HOST, PORT
 
@@ -75,7 +75,7 @@ def get_collections() -> list:
 def get_books_in_collection(
     collection_name: Annotated[
         str, Field(description="The name of the collection (DB table) to search in.")
-    ] = "BOOKS",
+    ] = DEFAULT_COLLECTION,
 ) -> list:
     """
     Get the list of books in a specific collection.
@@ -104,7 +104,7 @@ def search(
     top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 5,
     collection_name: Annotated[
         str, Field(description="The name of DB table")
-    ] = "BOOKS",
+    ] = DEFAULT_COLLECTION,
 ) -> dict:
     """
     Perform a semantic search based on the provided query.
