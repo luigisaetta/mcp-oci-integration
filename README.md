@@ -25,7 +25,7 @@ In today’s landscape of agentic AI, MCP is critical because it allows models t
 The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/welcome) library.
 
 **Examples**:
-* in [Minimal MCP Server](./minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect it using JWT.
+* in [Minimal MCP Server](./minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect them using [JWT](https://www.jwt.io/introduction#what-is-json-web-token).
 
 If you want to start with **something simpler**, have a look at [how to start developing MCP](./how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
 
@@ -37,7 +37,7 @@ In the Streamlit application, you can:
 * Select one of models available in OCI Generative AI
 * Test making questions answered using the tools exposed by the MCP server.
 
-In [llm_with_mcp.py](./llm_with_mcp.py) there is the complete implementation of the tool calling loop.
+In [llm_with_mcp.py](./llm_with_mcp.py) there is the complete implementation of the **tool-calling** loop.
 
 ## Semantic Search
 In this repository there is a **complete implementation of an MCP server** implementing **Semantic Search** on top of **Oracle 23AI**.
@@ -46,6 +46,8 @@ To use it, you need only:
 * To put the right configuration, to connect to DB, in config_private.py.
 
 The code is available [here](./mcp_semantic_search_with_iam.py). 
+
+Access to Oracle 23AI Vector Search is through the **new** [langchain-oci integration library](https://github.com/oracle/langchain-oracle)
 
 ## Adding security
 If you want to put your **MCP** server in production, you need to add security, at several levels.
