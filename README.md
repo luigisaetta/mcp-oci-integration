@@ -3,15 +3,16 @@ This repository contains code and examples to help in the following tasks:
 * **Develop** MCP servers in **Python**
 * **Run** MCP servers on **Oracle OCI**
 * **Integrate** MCP servers with **AI Agents**
-* **Integrate** MCP servers with **OCI resources** (ADB, Select AI, ...)
+* **Integrate** MCP servers with other **OCI resources** (ADB, Select AI, ...)
 * **Integrate** MCP Servers running on OCI with AI Assistants like **ChatGPT**, Claude.ai, MS Copilot
+* **Integrate** MCP Servers with OCI **APM* for **Observability**
 
 ![MCP console](./images/mcp_cli.png)
 
 ## What is MCP?
 **MCP (Model Context Protocol)** is an **open-source standard** that lets AI models (e.g. LLMs or agents) connect bidirectionally with external tools, data sources, and services via a unified interface. 
 
-It replaces the “N × M” integration problem (where each AI × data source requires custom code) with one standard protocol. 
+It replaces the “N×M” integration problem (where each AI × data source requires custom code) with one standard protocol. 
 
 MCP supports **dynamic discovery** of available tools and context, enabling:
 * AI Assistants to get access to relevant information, available in Enterprise Knowledge base.
@@ -61,7 +62,7 @@ Using **OCI services** there are several things you can do to get the right leve
 * You can put an **OCI API Gateway** in front, using it as TLS termination
 * You can enable authentication using **JWT** tokens
 * You can use **OCI IAM** to generate **JWT** tokens
-* You can use OCI netwrok security
+* You can use OCI network security
 
 More details in a dedicate page.
 
@@ -73,4 +74,11 @@ Soon, we'll add a server fully compliant with **OpenAI** specifications, that ca
 An initial implementation is available [here](./mcp_deep_research_with_iam.py)
 
 Details available [here](./integrate_chatgpt.md)
+
+## Integrate OCI ADB Select AI
+Another option is to use an MCP server to be able to integrate OCI **SelectAI** in ChatGPT or other assistants supporting MCP.
+In this way you have an option to do full **Text2SQL** search, over your database schema. Then, the AI assistant can process your retrieved data.
+
+We're working on it.
+
 
