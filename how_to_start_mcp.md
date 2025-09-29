@@ -61,3 +61,11 @@ if __name__ == "__main__":
             port=PORT,
         )
 ```
+
+## Discoverability and internal documentation
+One of the key features in MCP is **discoverability**. 
+They provide an endpoint where any AI assistant can discover the list of available tools and the way these tools can be called (params, return value).
+
+But, to make it works, you need to put in place **clear documentation**.
+If you implement it using FastMCP, the documntation for each tool is automatically generated from the docstring. 
+So, it is mandatory to **write a complete and clear docstring** (Google style).
