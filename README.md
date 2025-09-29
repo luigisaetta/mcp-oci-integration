@@ -79,6 +79,6 @@ Details available [here](./integrate_chatgpt.md)
 Another option is to use an MCP server to be able to integrate OCI **SelectAI** in ChatGPT or other assistants supporting MCP.
 In this way you have an option to do full **Text2SQL** search, over your database schema. Then, the AI assistant can process your retrieved data.
 
-We're working on it.
+An example is [here](./mcp_selectai.py)
 
 

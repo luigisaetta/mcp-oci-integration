@@ -47,6 +47,7 @@ if ENABLE_JWT_TOKEN:
 
 mcp = FastMCP("OCI Select AI MCP server", auth=AUTH)
 
+# helpers
 
 #
 # MCP tools definition
