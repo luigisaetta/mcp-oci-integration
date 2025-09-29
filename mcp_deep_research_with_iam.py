@@ -211,7 +211,8 @@ def fetch(
         "metadata": None,
     }
 
-    logger.info(result)
+    if DEBUG:
+        logger.info(result)
 
     return result
 
