@@ -69,45 +69,6 @@ def log_headers():
 # MCP tools definition
 #
 @mcp.tool
-def get_collections() -> list:
-    """
-    Get the list of collections (DB tables) available in the Oracle Vector Store.
-    Returns:
-        list: A list of collection names.
-    """
-    # check that a valid JWT is provided
-    if ENABLE_JWT_TOKEN:
-        log_headers()
-
-    return list_collections()
-
-
-@mcp.tool
-def get_books_in_collection(
-    collection_name: Annotated[
-        str, Field(description="The name of the collection (DB table) to search in.")
-    ] = DEFAULT_COLLECTION,
-) -> list:
-    """
-    Get the list of books in a specific collection.
-    Args:
-        collection_name (str): The name of the collection (DB table) to search in.
-    Returns:
-        list: A list of book titles in the specified collection.
-    """
-    # check that a valid JWT is provided
-    if ENABLE_JWT_TOKEN:
-        log_headers()
-
-    try:
-        books = list_books_in_collection(collection_name)
-        return books
-    except Exception as e:
-        logger.error("Error getting books in collection: %s", e)
-        return []
-
-
-@mcp.tool
 def search(
     query: Annotated[
         str, Field(description="The deep search query to find relevant documents.")
@@ -215,6 +176,45 @@ def fetch(
         logger.info(result)
 
     return result
+
+
+@mcp.tool
+def get_collections() -> list:
+    """
+    Get the list of collections (DB tables) available in the Oracle Vector Store.
+    Returns:
+        list: A list of collection names.
+    """
+    # check that a valid JWT is provided
+    if ENABLE_JWT_TOKEN:
+        log_headers()
+
+    return list_collections()
+
+
+@mcp.tool
+def get_books_in_collection(
+    collection_name: Annotated[
+        str, Field(description="The name of the collection (DB table) to search in.")
+    ] = DEFAULT_COLLECTION,
+) -> list:
+    """
+    Get the list of books in a specific collection.
+    Args:
+        collection_name (str): The name of the collection (DB table) to search in.
+    Returns:
+        list: A list of book titles in the specified collection.
+    """
+    # check that a valid JWT is provided
+    if ENABLE_JWT_TOKEN:
+        log_headers()
+
+    try:
+        books = list_books_in_collection(collection_name)
+        return books
+    except Exception as e:
+        logger.error("Error getting books in collection: %s", e)
+        return []
 
 
 #
