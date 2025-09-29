@@ -93,7 +93,7 @@ def fetch_text_by_id(id: str, collection_name: str) -> str:
     """
     Given the ID of a chunk return the text
     """
-    query = """
+    sql = """
     SELECT TEXT, json_value(METADATA, '$.source')
     FROM {collection_name}
     WHERE ID = :id
@@ -102,10 +102,11 @@ def fetch_text_by_id(id: str, collection_name: str) -> str:
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                query.format(collection_name=collection_name),
+                sql.format(collection_name=collection_name),
                 {"id": id},
             )
 
+            # we expect 0 or 1 rows
             row = cursor.fetchone()
             if row:
                 clob = row[0]

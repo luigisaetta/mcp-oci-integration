@@ -110,15 +110,15 @@ def get_books_in_collection(
 @mcp.tool
 def search(
     query: Annotated[
-        str, Field(description="The search query to find relevant documents.")
+        str, Field(description="The deep search query to find relevant documents.")
     ],
-    top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 5,
+    top_k: Annotated[int, Field(description="TOP_K parameter for search")] = 10,
     collection_name: Annotated[
         str, Field(description="The name of DB table")
     ] = "BOOKS",
 ) -> dict:
     """
-    Perform a semantic search based on the provided query.
+    Perform a deep search based on the provided query.
     Args:
         query (str): The search query.
         top_k (int): The number of top results to return.
@@ -126,10 +126,9 @@ def search(
     Returns:
         dict: a dictionary containing the relevant documents.
     """
-    # here only log
+    # here only log, no verification here, delegated to AuthProvider
     if ENABLE_JWT_TOKEN:
         log_headers()
-        # no verification here, delegated to BearerAuthProvider
 
     try:
         # must be the same embedding model used during load in the Vector Store
@@ -155,7 +154,6 @@ def search(
 
     # process relevant docs to be OpenAI compliant
     results = []
-
     for doc in relevant_docs:
         result = {
             "id": doc.metadata["ID"],
@@ -177,12 +175,12 @@ def fetch(id: str, collection_name: str = "BOOKS") -> Dict[str, Any]:
     """
     Retrieve complete document content by ID for detailed
     analysis and citation. This tool fetches the full document
-    content from OpenAI Vector Store. Use this after finding
+    content from Oracle 23AI. Use this after finding
     relevant documents with the search tool to get complete
     information for analysis and proper citation.
 
     Args:
-        id: File ID from vector store (file-xxx) or local document ID
+        id: doc ID from vector store
 
     Returns:
         Complete document with id, title, full text content,
@@ -196,12 +194,19 @@ def fetch(id: str, collection_name: str = "BOOKS") -> Dict[str, Any]:
 
     # execute the query on the DB
     result = fetch_text_by_id(id=id, collection_name=collection_name)
-    text_value = result["text_value"]
-    title = result["source"]
 
     # formatting result as required by OpenAI specs
+    # see: https://platform.openai.com/docs/mcp#create-an-mcp-server
     # we could add metadata
-    result = {"id": id, "title": title, "text": text_value, "url": "", "metadata": None}
+    result = {
+        "id": id,
+        "title": result["source"],
+        "text": result["text_value"],
+        "url": "",
+        "metadata": None,
+    }
+
+    logger.info(result)
 
     return result
 
