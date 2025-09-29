@@ -103,3 +103,6 @@ IAM_BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oracleclo
 # these are used during the verification of the token
 ISSUER = "https://identity.oraclecloud.com/"
 AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
+
+# for Select AI
+SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE"
