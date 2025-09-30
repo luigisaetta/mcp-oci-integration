@@ -1,0 +1,8 @@
+timeout_seconds: 60
+# metti true se vuoi <backend>.<tool>
+use_namespace: false
+backends:
+  - name: db
+    url: "http://localhost:9000/mcp"
+  - name: search
+    url: "http://localhost:8000/mcp"
