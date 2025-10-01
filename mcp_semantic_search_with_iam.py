@@ -18,9 +18,9 @@ from fastmcp.server.dependencies import get_http_headers
 from utils import get_console_logger
 from oci_models import get_embedding_model, get_oracle_vs
 from db_utils import get_connection, list_collections, list_books_in_collection
+from mcp_utils import run_server
 from config import EMBED_MODEL_TYPE, DEFAULT_COLLECTION
 from config import DEBUG, IAM_BASE_URL, ENABLE_JWT_TOKEN, ISSUER, AUDIENCE
-from config import TRANSPORT, HOST, PORT
 
 logger = get_console_logger()
 
@@ -156,10 +156,5 @@ if __name__ == "__main__":
     else:
         LOG_LEVEL = "INFO"
 
-    mcp.run(
-        transport=TRANSPORT,
-        # Bind to all interfaces
-        host=HOST,
-        port=PORT,
-        log_level=LOG_LEVEL,
-    )
+    # this one takes care of HOST, PORT settings
+    run_server(mcp)

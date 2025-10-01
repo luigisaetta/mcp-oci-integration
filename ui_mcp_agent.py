@@ -5,6 +5,7 @@ Streamlit UI for MCP servers
 import asyncio
 import traceback
 import streamlit as st
+from config import MODEL_LIST
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console
@@ -25,12 +26,7 @@ with st.sidebar:
 
     model_id = st.selectbox(
         "Model",
-        [
-            "cohere.command-a-03-2025",
-            "xai.grok-3",
-            "openai.gpt-4.1",
-            "openai.gpt-5",
-        ],
+        MODEL_LIST,
         index=0,
     )
     timeout = st.number_input(

@@ -104,10 +104,13 @@ class Aggregator:
         Args:
             config_path: Path to the YAML configuration file.
         """
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f) or {}
 
         self.timeout: float = float(cfg.get("timeout_seconds", 15))
+        self.host: str = str(cfg.get("host", "0.0.0.0"))
+        self.port: int = int(cfg.get("port", 7000))
+
         self.backends_cfg: List[dict] = cfg.get("backends", [])
         if not self.backends_cfg:
             raise RuntimeError("config.yaml: 'backends' section is missing or empty")
@@ -337,4 +340,4 @@ if __name__ == "__main__":
     # Entry point: load config, bootstrap (discover & register tools), then serve HTTP.
     agg = Aggregator("aggregator_config.yaml")
     asyncio.run(agg.bootstrap())
-    agg.run(host="0.0.0.0", port=6000)
+    agg.run(host=agg.host, port=agg.port)

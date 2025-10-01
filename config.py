@@ -49,8 +49,8 @@ TEMPERATURE = 0.1
 MAX_TOKENS = 4000
 
 # OCI general
-REGION = "eu-frankfurt-1"
-# REGION = "us-chicago-1"
+# REGION = "eu-frankfurt-1"
+REGION = "us-chicago-1"
 SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 
 if REGION == "us-chicago-1":
@@ -66,11 +66,10 @@ if REGION == "us-chicago-1":
     ]
 else:
     MODEL_LIST = [
+        "openai.gpt-4.1",
+        "openai.gpt-5",
         "meta.llama-3.3-70b-instruct",
         "cohere.command-a-03-2025",
-        "openai.gpt-4.1",
-        "openai.gpt-4o",
-        "openai.gpt-5",
     ]
 
 # semantic search

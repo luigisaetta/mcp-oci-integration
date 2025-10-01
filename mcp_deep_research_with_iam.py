@@ -29,9 +29,10 @@ from db_utils import (
     list_books_in_collection,
     fetch_text_by_id,
 )
+from mcp_utils import run_server
 from config import EMBED_MODEL_TYPE, DEFAULT_COLLECTION
 from config import DEBUG, IAM_BASE_URL, ENABLE_JWT_TOKEN, ISSUER, AUDIENCE
-from config import TRANSPORT, HOST, PORT
+
 
 logger = get_console_logger()
 
@@ -226,10 +227,5 @@ if __name__ == "__main__":
     else:
         LOG_LEVEL = "INFO"
 
-    mcp.run(
-        transport=TRANSPORT,
-        # Bind to all interfaces
-        host=HOST,
-        port=PORT,
-        log_level=LOG_LEVEL,
-    )
+    # this one takes care of HOST, PORT settings
+    run_server(mcp)

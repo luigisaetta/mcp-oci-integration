@@ -129,7 +129,7 @@ def list_books_in_collection(collection_name: str) -> list:
     taken from metadata
     expect metadata contains the field source
 
-    modified to return also the numb. of chunks
+    modified to return also the num. of chunks
     """
     query = f"""
                 SELECT DISTINCT json_value(METADATA, '$.source') AS books, 
@@ -197,13 +197,27 @@ def generate_sql_from_prompt(profile_name: str, prompt: str) -> str:
                )
         FROM dual
     """
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(stmt, {"p": prompt, "prof": profile_name})
-            # CLOB (LOB) or str
-            raw = cursor.fetchone()[0]
-            sql_text = read_lob(raw) or ""
-            return normalize_sql(sql_text)
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(stmt, {"p": prompt, "prof": profile_name})
+                # CLOB (LOB) or str
+                raw = cursor.fetchone()[0]
+                sql_text = read_lob(raw) or ""
+                return {"sql": normalize_sql(sql_text)}
+
+    except oracledb.DatabaseError as e:
+        (error,) = e.args
+        logger.error(
+            f"[generate_sql_from_prompt] Database error: {error.message} "
+            f"(code={error.code}) | prompt='{prompt}' profile='{profile_name}'"
+        )
+        raise
+    except Exception as e:
+        logger.error(
+            f"[generate_sql_from_prompt] Unexpected error for prompt='{prompt}', profile='{profile_name}'"
+        )
+        raise
 
 
 def execute_generated_sql(
@@ -217,25 +231,38 @@ def execute_generated_sql(
         "sql": "..."
       }
     """
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(generated_sql)
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(generated_sql)
 
-            columns: List[str] = [d[0] for d in cursor.description]
+                columns: List[str] = [d[0] for d in cursor.description]
 
-            # Fetch
-            raw_rows = cursor.fetchmany(limit) if limit else cursor.fetchall()
+                # Fetch
+                raw_rows = cursor.fetchmany(limit) if limit else cursor.fetchall()
 
-            # Normalize every cell to JSON-safe
-            rows: List[List[Any]] = [
-                [_to_jsonable(cell) for cell in row] for row in raw_rows
-            ]
+                # Normalize every cell to JSON-safe
+                rows: List[List[Any]] = [
+                    [_to_jsonable(cell) for cell in row] for row in raw_rows
+                ]
 
-            return {
-                "columns": columns,
-                "rows": rows,  # list of lists (JSON arrays)
-                "sql": generated_sql,  # useful for logging/debug
-            }
+                return {
+                    "columns": columns,
+                    "rows": rows,  # list of lists (JSON arrays)
+                    "sql": generated_sql,  # useful for logging/debug
+                }
+    except oracledb.DatabaseError as e:
+        (error,) = e.args
+        logger.error(
+            f"[execute_generated_sql] Database error: {error.message} "
+            f"(code={error.code}) | sql='{generated_sql}'"
+        )
+        raise
+    except Exception as e:
+        logger.error(
+            f"[execute_generated_sql] Unexpected error executing sql='{generated_sql}'"
+        )
+        raise
 
 
 def run_select_ai(
