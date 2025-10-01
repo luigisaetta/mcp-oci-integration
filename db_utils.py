@@ -207,15 +207,21 @@ def generate_sql_from_prompt(profile_name: str, prompt: str) -> str:
                 return {"sql": normalize_sql(sql_text)}
 
     except oracledb.DatabaseError as e:
-        (error,) = e.args
+        error = e.args[0] if e.args else None
         logger.error(
-            f"[generate_sql_from_prompt] Database error: {error.message} "
-            f"(code={error.code}) | prompt='{prompt}' profile='{profile_name}'"
+            "[generate_sql_from_prompt] Database error: %s "
+            "(code=%s | prompt='%s' profile='%s'",
+            error.message,
+            error.code,
+            prompt,
+            profile_name,
         )
         raise
-    except Exception as e:
+    except Exception:
         logger.error(
-            f"[generate_sql_from_prompt] Unexpected error for prompt='{prompt}', profile='{profile_name}'"
+            "[generate_sql_from_prompt] Unexpected error for prompt=%s, profile=%s",
+            prompt,
+            profile_name,
         )
         raise
 
@@ -252,15 +258,18 @@ def execute_generated_sql(
                     "sql": generated_sql,  # useful for logging/debug
                 }
     except oracledb.DatabaseError as e:
-        (error,) = e.args
+        error = e.args[0] if e.args else None
         logger.error(
-            f"[execute_generated_sql] Database error: {error.message} "
-            f"(code={error.code}) | sql='{generated_sql}'"
+            "[execute_generated_sql] Database error: %s (code=%s) | sql='%s'",
+            error.message,
+            error.code,
+            generated_sql,
         )
         raise
-    except Exception as e:
+    except Exception:
         logger.error(
-            f"[execute_generated_sql] Unexpected error executing sql='{generated_sql}'"
+            "[execute_generated_sql] Unexpected error executing sql='%s'",
+            generated_sql,
         )
         raise
 

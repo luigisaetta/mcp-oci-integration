@@ -77,7 +77,7 @@ def generate_sql(user_request: str) -> Dict[str, Any]:
     try:
         results = generate_sql_from_prompt(SELECT_AI_PROFILE, user_request)
     except Exception as e:
-        logger.error(f"Error generating SQL for request '{user_request}': {e}")
+        logger.error("Error generating SQL for request %s: %s", user_request, e)
         results = {"error": str(e)}
 
     return results
@@ -93,7 +93,7 @@ def execute_sql(sql: str) -> Dict[str, Any]:
     try:
         results = execute_generated_sql(sql)
     except Exception as e:
-        logger.error(f"Error executing SQL '{sql}': {e}")
+        logger.error("Error executing SQL %s: %s", sql, e)
         results = {"error": str(e)}
 
     return results
