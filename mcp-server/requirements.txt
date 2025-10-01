@@ -1,0 +1,4 @@
+fastmcp>=2.10.0
+oracledb>=2.4.0
+uvicorn>=0.30.0
+
