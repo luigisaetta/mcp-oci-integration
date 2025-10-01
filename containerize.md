@@ -2,6 +2,7 @@
 Here you'll find the step-by-step instructions to build a container where you run your MCP server
 
 ### Project Layout
+```
 mcp-server/
 ├─ app.py                  # your code (rename from the snippet if needed)
 ├─ config.py               # reads env vars (see below)
@@ -9,6 +10,7 @@ mcp-server/
 ├─ Dockerfile
 ├─ .dockerignore
 └─ docker-compose.yml      # optional convenience
+```
 
 ### config.py
 ```
