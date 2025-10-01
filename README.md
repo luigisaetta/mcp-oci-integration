@@ -6,6 +6,7 @@ This repository contains code and examples to help in the following tasks:
 * **Integrate** MCP servers with other **OCI resources** (ADB, Select AI, ...)
 * **Integrate** MCP Servers running on OCI with AI Assistants like **ChatGPT**, Claude.ai, MS Copilot
 * **Integrate** MCP Servers with OCI **APM** for **Observability**
+* **how-to** create a **docker** image for your MCP server
 
 ![MCP console](./images/mcp_cli.png)
 
