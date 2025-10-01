@@ -1,6 +1,11 @@
 # Run MCP server in a container
 Here you'll find the step-by-step instructions to build a container where you run your MCP server
 
+Details:
+* all variables (ENABLE_JWT_TOKENS...) passed from the environment at start
+* ready to use JWT tokens
+* instructions to start with **docker-compose**
+
 ### Project Layout
 ```
 mcp-server/
@@ -37,7 +42,7 @@ ADB_PASSWORD = os.getenv("ADB_PASSWORD", "")
 ADB_DSN      = os.getenv("ADB_DSN", "")  # e.g., "myadb_tp.adb.eu-frankfurt-1.oraclecloud.com"
 ```
 
-### requiremets.txt
+### requirements.txt
 ```
 fastmcp>=2.10.0
 oracledb>=2.4.0
