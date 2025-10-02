@@ -1,8 +1,13 @@
 timeout_seconds: 60
+# listen on
+host: 0.0.0.0
+port: 6000
 # metti true se vuoi <backend>.<tool>
 use_namespace: false
 backends:
-  - name: db
-    url: "http://localhost:9000/mcp"
-  - name: search
+  - name: selectai_db
     url: "http://localhost:8000/mcp"
+  - name: search
+    url: "http://localhost:9000/mcp"
+  - name: internet_search
+    url: "http://localhost:8500/mcp"
