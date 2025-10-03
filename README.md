@@ -82,4 +82,6 @@ In this way you have an option to do full **Text2SQL** search, over your databas
 
 An example is [here](./mcp_selectai.py)
 
+For **Select AI** configuration, see [here](./configure_select_ai.md)
+
 
