@@ -12,7 +12,7 @@ Example:
 * (SQL): SELECT DRIVER_NAME from F1USER.F1_DRIVERS
 
 ## Configuration
-To use **Select AI** you need an ADB, with the schema where you want to run your SQL statements and a Large Language Model (LLM).
+To use **Select AI** you need an ADB, with the schema where you want to run your SQL statements, and a Large Language Model (LLM).
 You can use a model provided by **OCI Generative AI** service, or a model from another supported provider (see Oracle docs for the list).
 
 In this short note, we will provide information to configure Select AI using OCI Generative AI.
