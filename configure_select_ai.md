@@ -3,8 +3,8 @@
 ## Introduction
 **Select AI** is a functionality provided by **Oracle Autonomous Database (ADB)**.
 
-It enables to do easily **Text2SQL**, in other words to translate a request for data, exepressed in Natural Language (NL)
-in a SQL statememt working in your Database.
+It enables to do easily **Text2SQL**, in other words to translate a request for data, expressed in Natural Language (NL)
+in a SQL statement working in your Database.
 
 Example:
 (NL): List the names of all F1 drivers.
@@ -36,7 +36,8 @@ END;
 /
 ```
 
-Create a **Select AI profile**. Execute the following procedure, again with your data
+Create a **Select AI profile**. Execute the following procedure, again with your data.
+(put the list of the object in the schema you need to make visible to Select AI)
 
 ```
 BEGIN
@@ -66,4 +67,17 @@ END;
 ```
 
 ## Test Select AI
-You can test that the configuration is working fine using code like the one in [test select AI](./test_selectai01.py)
+You can test that the configuration is correctly working using code like the one in [test select AI](./test_selectai01.py)
+
+The code is using the new library from Oracle: **select-ai**
+To use it, you need also to have installed in your Python environment the library: **oracledb**
+
+```
+pip install select_ai
+pip install oracledb
+```
+
+## References
+For more information, see 
+* [Getting Started with Select AI](https://docs.oracle.com/en-us/iaas/autonomous-database-serverless/doc/select-ai-get-started.html)
+* [How to use Select AI: A step-by-step guide](https://blogs.oracle.com/datawarehousing/post/how-to-use-oracle-select-ai-a-stepbystep-guide-generative-ai)
