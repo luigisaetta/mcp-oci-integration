@@ -27,7 +27,7 @@ DEFAULT_URL = MCP_SERVERS_CONFIG["default"]["url"]
 server_url = st.text_input("URL MCP:", DEFAULT_URL)
 TIMEOUT = 30
 
-# Stato della sessione
+# Session state
 if "tools" not in st.session_state:
     st.session_state.tools = []
 if "error" not in st.session_state:

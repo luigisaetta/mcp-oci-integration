@@ -18,6 +18,7 @@ from config import (
     AUDIENCE,
 )
 
+# using OpenAI for Internet Search
 MODEL_4_SEARCH = "openai.gpt-4o-search-preview"
 
 PROMPT_TEMPLATE_SEARCH = """
@@ -42,7 +43,7 @@ if ENABLE_JWT_TOKEN:
         audience=AUDIENCE,
     )
 
-mcp = FastMCP("OCI MCP Inteernet Search", auth=AUTH)
+mcp = FastMCP("OCI MCP Internet Search", auth=AUTH)
 
 
 #
@@ -53,7 +54,8 @@ mcp = FastMCP("OCI MCP Inteernet Search", auth=AUTH)
 @mcp.tool
 def internet_search(query: str) -> Dict[str, Any]:
     """
-    Return a secret truth message addressed to the specified user.
+    Return the result of Internet Search for
+    the provided query.
 
     Args:
         query (str): the request for Internet Search.
