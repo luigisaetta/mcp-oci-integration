@@ -95,7 +95,7 @@ HOST = "0.0.0.0"
 PORT = 9000
 
 # with this we can toggle JWT token auth
-ENABLE_JWT_TOKEN = False
+ENABLE_JWT_TOKEN = True
 # for JWT token with OCI
 # put your domain URL here
 IAM_BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
@@ -106,3 +106,6 @@ AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 # for Select AI
 SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_F1"
 # SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE"
+
+# UI
+UI_TITLE = "🛠️ AI Assistant powered by MCP"

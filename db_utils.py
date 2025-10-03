@@ -70,13 +70,32 @@ def normalize_sql(sql_text: str) -> str:
 
 def is_safe_select(sql_text: str) -> bool:
     """
-    Minimal safety check: only allow pure SELECTs (no DML/DDL/PLSQL).
+    Minimal safety check: only allow pure SELECT statements (no DML/DDL/PLSQL).
     """
+    forbidden_commands = [
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "MERGE",
+        "ALTER",
+        "DROP",
+        "CREATE",
+        "GRANT",
+        "REVOKE",
+        "TRUNCATE",
+        "BEGIN",
+        "EXEC",
+        "CALL",
+    ]
+
     s = sql_text.strip().upper()
     if not s.startswith("SELECT "):
         return False
-    forbidden = r"\b(INSERT|UPDATE|DELETE|MERGE|ALTER|DROP|CREATE|GRANT|REVOKE|TRUNCATE|BEGIN|EXEC|CALL)\b"
-    return not re.search(forbidden, s)
+
+    # Build regex from forbidden command list
+    pattern = r"\b(" + "|".join(forbidden_commands) + r")\b"
+
+    return not re.search(pattern, s)
 
 
 def _to_jsonable(value: Any):

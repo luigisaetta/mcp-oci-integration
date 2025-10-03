@@ -2,10 +2,12 @@
 MCP Aggregator (HTTP-only, FastMCP v2)
 
 - Re-exports tools 1:1 from remote MCP servers over Streamable HTTP.
-- Aligns input schema: generates a dynamic function signature that matches each remote tool's inputSchema.
+- Aligns input schema: generates a dynamic function signature
+  that matches each remote tool's inputSchema.
 - Respects output schema: if the remote tool declares `x-fastmcp-wrap-result: true`,
   the aggregator wraps the returned value as `{"result": <value>}`.
-- No persistent client sessions: each call opens/closes a FastMCP Client (robust across event loops).
+- No persistent client sessions: each call opens/closes a FastMCP Client
+  (robust across event loops).
 - Toggleable structured logging via the DEBUG constant.
 """
 
@@ -15,8 +17,12 @@ import logging
 from typing import Dict, List, Optional
 
 import yaml
-from fastmcp import FastMCP, Client  # fastmcp >= 2.x (recommended >= 2.10.0)
+
+# fastmcp >= 2.x (recommended >= 2.10.0)
+from fastmcp import FastMCP, Client
 from fastmcp.server.auth.providers.jwt import JWTVerifier
+
+from llm_with_mcp import default_jwt_supplier
 
 # ---------- DEBUG TOGGLE ----------
 DEBUG = False  # Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
@@ -118,7 +124,7 @@ class Aggregator:
         if cfg.get("enable_jwt_tokens", False):
             # config to check that a valid JWT token is provided
             iam_base_url = cfg.get("iam_base_url", "").strip().rstrip("/")
-            issuer = cfg.get("issuer", "").strip().rstrip("/")
+            issuer = cfg.get("issuer", "")
             audience = cfg.get("audience", [])
             self.auth = JWTVerifier(
                 # this is the url to get the public key from IAM
@@ -127,8 +133,10 @@ class Aggregator:
                 issuer=issuer,
                 audience=audience,
             )
+            self.jwt_supplier = default_jwt_supplier()
         else:
             self.auth = None
+            self.jwt_supplier = default_jwt_supplier()
 
         # Optional namespacing of exposed tool names
         self.use_namespace: bool = bool(cfg.get("use_namespace", False))
@@ -162,7 +170,9 @@ class Aggregator:
             backend_url = backend["url"]
 
             # One-time discovery with a short-lived client
-            async with Client(backend_url, timeout=self.timeout) as client:
+            async with Client(
+                backend_url, timeout=self.timeout, auth=self.jwt_supplier
+            ) as client:
                 tools = await client.list_tools()
 
             for t in tools:
@@ -254,7 +264,9 @@ class Aggregator:
         if not input_schema or not isinstance(input_schema, dict):
 
             async def proxy(arguments: dict):
-                async with Client(backend_url, timeout=self.timeout) as c:
+                async with Client(
+                    backend_url, timeout=self.timeout, auth=self.jwt_supplier
+                ) as c:
                     res = await c.call_tool(tool_name, arguments or {})
                 # Normalize output
                 val = getattr(res, "data", None)

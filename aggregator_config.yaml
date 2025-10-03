@@ -1,6 +1,6 @@
 timeout_seconds: 60
 # to manage jwt tokens
-enable_jwt_tokens: false
+enable_jwt_tokens: true
 iam_base_url: "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
 issuer: "https://identity.oraclecloud.com/"
 audience: ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
