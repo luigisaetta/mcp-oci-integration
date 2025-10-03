@@ -47,7 +47,7 @@ BEGIN
       attributes   =>
       '{
         "provider": "oci",
-        "region": "eu-frankfurt-1",
+        "region": "us-chicago-1",
         "oci_compartment_id": "ocid1.compartment.oc1..my compartment ocid",
         "credential_name": "MY_CREDENTIAL_NAME",
         "object_list": [
@@ -61,7 +61,7 @@ BEGIN
           {"owner": "SH", "name": "SUPPLEMENTARY_DEMOGRAPHICS"},
           {"owner": "SH", "name": "TIMES"}
         ],
-        "model": "openai.gpt-4.1"
+        "model": "xai.grok-4"
       }');
 
 END;
