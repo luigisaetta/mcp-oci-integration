@@ -3,12 +3,13 @@
 ## Introduction
 **Select AI** is a functionality provided by **Oracle Autonomous Database (ADB)**.
 
-It enables to do easily **Text2SQL**, in other words to translate a request for data, expressed in Natural Language (NL)
+It enables to do easily **Text2SQL**, in other words to translate a request for data, expressed in Natural Language (NL),
 in a SQL statement working in your Database.
 
 Example:
-(NL): List the names of all F1 drivers.
-(SQL): SELECT DRIVER_NAME from F1USER.F1_DRIVERS
+
+* (NL): List the names of all F1 drivers.
+* (SQL): SELECT DRIVER_NAME from F1USER.F1_DRIVERS
 
 ## Configuration
 To use **Select AI** you need an ADB, with the schema where you want to run your SQL statements and a Large Language Model (LLM).
