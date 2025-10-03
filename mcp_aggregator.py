@@ -16,7 +16,7 @@ from typing import Dict, List, Optional
 
 import yaml
 from fastmcp import FastMCP, Client  # fastmcp >= 2.x (recommended >= 2.10.0)
-
+from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 # ---------- DEBUG TOGGLE ----------
 DEBUG = False  # Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
@@ -109,16 +109,31 @@ class Aggregator:
 
         self.timeout: float = float(cfg.get("timeout_seconds", 15))
         self.host: str = str(cfg.get("host", "0.0.0.0"))
-        self.port: int = int(cfg.get("port", 7000))
+        self.port: int = int(cfg.get("port", 6000))
 
         self.backends_cfg: List[dict] = cfg.get("backends", [])
         if not self.backends_cfg:
             raise RuntimeError("config.yaml: 'backends' section is missing or empty")
 
+        if cfg.get("enable_jwt_tokens", False):
+            # config to check that a valid JWT token is provided
+            iam_base_url = cfg.get("iam_base_url", "").strip().rstrip("/")
+            issuer = cfg.get("issuer", "").strip().rstrip("/")
+            audience = cfg.get("audience", [])
+            self.auth = JWTVerifier(
+                # this is the url to get the public key from IAM
+                # the PK is used to check the JWT
+                jwks_uri=f"{iam_base_url}/admin/v1/SigningCert/jwk",
+                issuer=issuer,
+                audience=audience,
+            )
+        else:
+            self.auth = None
+
         # Optional namespacing of exposed tool names
         self.use_namespace: bool = bool(cfg.get("use_namespace", False))
 
-        self.server = FastMCP(name="mcp-aggregator")
+        self.server = FastMCP(name="mcp-aggregator", auth=self.auth)
 
         # Registry: exposed tool name -> backend info and schema
         # info = {
