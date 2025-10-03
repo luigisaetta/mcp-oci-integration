@@ -91,4 +91,7 @@ elif st.session_state.tools:
             if t.inputSchema:
                 with st.expander("📘 Input Schema"):
                     st.json(t.inputSchema)
+            if t.outputSchema:
+                with st.expander("📗 Output Schema"):
+                    st.json(t.outputSchema)
             st.divider()

@@ -74,13 +74,13 @@ def get_collections() -> list:
 @mcp.tool
 def get_books_in_collection(
     collection_name: Annotated[
-        str, Field(description="The name of the collection (DB table) to search in.")
+        str, Field(description="The name of the collection to search in.")
     ] = DEFAULT_COLLECTION,
 ) -> list:
     """
     Get the list of books in a specific collection.
     Args:
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection to search in.
     Returns:
         list: A list of book titles in the specified collection.
     """
@@ -111,7 +111,7 @@ def search(
     Args:
         query (str): The search query.
         top_k (int): The number of top results to return. Must be at least 5.
-        collection_name (str): The name of the collection (DB table) to search in.
+        collection_name (str): The name of the collection to search in.
     Returns:
         dict: a dictionary containing the relevant documents.
     """

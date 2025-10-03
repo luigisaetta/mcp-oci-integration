@@ -1,7 +1,7 @@
 """
 MCP server config
 
-You can put the infor required to access MCP server here
+You can put the info required to access MCP server here
 """
 
 MCP_SERVERS_CONFIG = {
