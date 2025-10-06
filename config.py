@@ -30,7 +30,7 @@ DEBUG = False
 AUTH = "API_KEY"
 
 # embeddings
-# added this to distinguish between Cohere end REST NVIDIA models
+# added this to distinguish between Cohere and REST NVIDIA models
 # can be OCI or NVIDIA
 EMBED_MODEL_TYPE = "OCI"
 # EMBED_MODEL_TYPE = "NVIDIA"
@@ -104,8 +104,9 @@ ISSUER = "https://identity.oraclecloud.com/"
 AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 
 # for Select AI
-SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_F1"
-# SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE"
+# SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_F1"
+# this one with SH schema
+SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE"
 
 # UI
 UI_TITLE = "🛠️ AI Assistant powered by MCP"

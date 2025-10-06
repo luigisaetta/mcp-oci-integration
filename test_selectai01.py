@@ -4,6 +4,7 @@ Test Select AI on SH schema
 
 import select_ai
 from config_private import CONNECT_ARGS
+
 PROFILE_NAME = "OCI_GENERATIVE_AI_PROFILE"
 NL_REQUEST = "List top 10 customers by sales in Europe"
 

@@ -65,7 +65,7 @@ Using **OCI services** there are several things you can do to get the right leve
 * You can use **OCI IAM** to generate **JWT** tokens
 * You can use OCI network security
 
-More details in a dedicate page.
+More details in a dedicated page.
 
 ## Integrate MCP Semantic Search with ChatGPT
 If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) server you can test the integration with **ChatGPT** in **Developer Mode**. It provides a **search** tool, compliant with **OpenAI** specs. 
