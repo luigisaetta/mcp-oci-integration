@@ -18,7 +18,7 @@ def run_server(mcp):
     if TRANSPORT not in {"stdio", "streamable-http"}:
         raise RuntimeError(f"Unsupported TRANSPORT: {TRANSPORT}")
 
-    # parse CLI arguments
+    # parse CLI arguments to eventually get the port
     parser = argparse.ArgumentParser(description="Run the Select AI MCP server")
     parser.add_argument(
         "--port",

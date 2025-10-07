@@ -14,7 +14,10 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 # here is the function that calls Select AI
-from db_utils import generate_sql_from_prompt, execute_generated_sql
+from consumption_utils import (
+    usage_summary_by_service_structured,
+    usage_summary_by_compartment_structured,
+)
 from mcp_utils import run_server
 from utils import get_console_logger
 
@@ -25,8 +28,6 @@ from config import (
     IAM_BASE_URL,
     ISSUER,
     AUDIENCE,
-    # select ai
-    SELECT_AI_PROFILE,
 )
 
 AUTH = None
@@ -46,54 +47,59 @@ if ENABLE_JWT_TOKEN:
         audience=AUDIENCE,
     )
 
-mcp = FastMCP("OCI Select AI MCP server", auth=AUTH)
+mcp = FastMCP("OCI Consumption MCP server", auth=AUTH)
 
 
 #
 # MCP tools definition
-# add and write the code for the tools here
-# mark each tool with the annotation
 #
 # results are wrapped
 #
 @mcp.tool
-def generate_sql(user_request: str) -> Dict[str, Any]:
+def usage_summary_by_service(start_date: str, end_date: str) -> Dict[str, Any]:
     """
-    Return the SQL generated for the user request.
+    Return the consumption aggregated by service.
 
     Args:
-        user_request (str): the request to be translated in SQL.
+        start_date: start date of the period. Format: YYYY-MM-DD
+        end_date: end date of the period. Format: YYYY-MM-DD
 
     Returns:
-        str: the SQL generated.
+        a structure with details of consumption.
 
-    Examples:
-        >>> generate_sql("List top 5 customers by sales")
-        SQL...
     """
     if DEBUG:
         logger.info("Called generate_sql...")
 
     try:
-        results = generate_sql_from_prompt(SELECT_AI_PROFILE, user_request)
+        results = usage_summary_by_service_structured(start_date, end_date)
     except Exception as e:
-        logger.error("Error generating SQL for request %s: %s", user_request, e)
+        logger.error("Error generating consumption: %s", e)
         results = {"error": str(e)}
 
     return results
 
 
 @mcp.tool
-def execute_sql(sql: str) -> Dict[str, Any]:
+def usage_summary_by_compartment(start_date: str, end_date: str) -> Dict[str, Any]:
     """
-    Execute the SQL statement generated
+    Return the consumption aggregated by compartment.
+
+    Args:
+        start_date: start date of the period. Format: YYYY-MM-DD
+        end_date: end date of the period. Format: YYYY-MM-DD
+
+    Returns:
+        a structure with details of consumption.
+
     """
     if DEBUG:
-        logger.info("Called execute_sql...")
+        logger.info("Called generate_sql...")
+
     try:
-        results = execute_generated_sql(sql)
+        results = usage_summary_by_compartment_structured(start_date, end_date)
     except Exception as e:
-        logger.error("Error executing SQL %s: %s", sql, e)
+        logger.error("Error generating consumption: %s", e)
         results = {"error": str(e)}
 
     return results
