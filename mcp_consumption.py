@@ -1,8 +1,5 @@
 """
-Text2SQL MCP server based on ADB Select AI
-
-It requires that a Select AI profile has already been created
-in the DB schema used for the DB connection.
+MCP Server to query data regarding OCI usage and consumption
 """
 
 from typing import Any, Dict
