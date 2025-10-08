@@ -9,37 +9,21 @@ License: MIT
 from typing import Annotated
 from pydantic import Field
 
-from fastmcp import FastMCP
-
-# to verify the JWT token
-from fastmcp.server.auth.providers.jwt import JWTVerifier
 from fastmcp.server.dependencies import get_http_headers
 
 from utils import get_console_logger
 from oci_models import get_embedding_model, get_oracle_vs
 from db_utils import get_connection, list_collections, list_books_in_collection
-from mcp_utils import run_server
+from mcp_utils import create_server, run_server
 from config import EMBED_MODEL_TYPE, DEFAULT_COLLECTION, TOP_K
-from config import DEBUG, IAM_BASE_URL, ENABLE_JWT_TOKEN, ISSUER, AUDIENCE
+from config import DEBUG, ENABLE_JWT_TOKEN
 
 logger = get_console_logger()
 
-AUTH = None
-
-if ENABLE_JWT_TOKEN:
-    # check that a valid JWT token is provided
-    # see docs here: https://gofastmcp.com/servers/auth/bearer
-    AUTH = JWTVerifier(
-        # this is the url to get the public key from IAM
-        # the PK is used to check the JWT
-        jwks_uri=f"{IAM_BASE_URL}/admin/v1/SigningCert/jwk",
-        issuer=ISSUER,
-        audience=AUDIENCE,
-    )
 
 # create the app
 # cool, the OAUTH 2.1 provider is pluggable
-mcp = FastMCP("Demo Semantic Search as MCP server", auth=AUTH)
+mcp = create_server("Demo Semantic Search as MCP server")
 
 
 #
