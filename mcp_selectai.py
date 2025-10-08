@@ -6,47 +6,22 @@ in the DB schema used for the DB connection.
 """
 
 from typing import Any, Dict
-from fastmcp import FastMCP
-
-# to verify the JWT token
-# if you don't need to add security, you can remove this
-# uses the new verifier from latest FastMCP
-from fastmcp.server.auth.providers.jwt import JWTVerifier
 
 # here is the function that calls Select AI
 from db_utils import generate_sql_from_prompt, execute_generated_sql
-from mcp_utils import run_server
+from mcp_utils import create_server, run_server
 from utils import get_console_logger
 
 from config import (
     DEBUG,
-    # first four needed only to manage JWT
-    ENABLE_JWT_TOKEN,
-    IAM_BASE_URL,
-    ISSUER,
-    AUDIENCE,
     # select ai
     SELECT_AI_PROFILE,
 )
 
-AUTH = None
+
 logger = get_console_logger()
 
-#
-# if you don't need to add security, you can remove this part and set
-# AUTH = None, or simply set ENABLE_JWT_TOKEN = False
-#
-if ENABLE_JWT_TOKEN:
-    # check that a valid JWT token is provided
-    AUTH = JWTVerifier(
-        # this is the url to get the public key from IAM
-        # the PK is used to check the JWT
-        jwks_uri=f"{IAM_BASE_URL}/admin/v1/SigningCert/jwk",
-        issuer=ISSUER,
-        audience=AUDIENCE,
-    )
-
-mcp = FastMCP("OCI Select AI MCP server", auth=AUTH)
+mcp = create_server("OCI Select AI MCP server")
 
 
 #

@@ -87,7 +87,8 @@ def usage_summary_by_service_structured(
         granularity="DAILY",
         query_type=query_type,
         group_by=group_by,
-        is_aggregate_by_time=False,  # <-- crucial: aggregate over the whole window
+        # crucial: aggregate over the whole window
+        is_aggregate_by_time=False,
     )
 
     resp = usage_client.request_summarized_usages(details)
