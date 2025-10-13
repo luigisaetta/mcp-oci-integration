@@ -8,6 +8,7 @@ from typing import Any, Dict
 from consumption_utils import (
     usage_summary_by_service_structured,
     usage_summary_by_compartment_structured,
+    fetch_consumption_by_compartment,
 )
 from mcp_utils import create_server, run_server
 from utils import get_console_logger
@@ -69,6 +70,19 @@ def usage_summary_by_compartment(start_date: str, end_date: str) -> Dict[str, An
         results = usage_summary_by_compartment_structured(start_date, end_date)
     except Exception as e:
         logger.error("Error generating consumption: %s", e)
+        results = {"error": str(e)}
+
+    return results
+
+
+@mcp.tool
+def usage_breakdown_for_service_by_compartment(
+    start_date: str, end_date: str, service_name: str
+) -> Dict[str, Any]:
+    try:
+        results = fetch_consumption_by_compartment(start_date, end_date, service_name)
+    except Exception as e:
+        logger.error("Error generating breakdown: %s", e)
         results = {"error": str(e)}
 
     return results
