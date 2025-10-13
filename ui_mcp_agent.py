@@ -96,12 +96,16 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("Thinking with support from MCP tools…"):
                 try:
-                    ANSWER = asyncio.run(
+                    answer = asyncio.run(
                         # we pass also the history (chat)
                         st.session_state.agent.answer(prompt, st.session_state.chat)
                     )
                 except Exception as e:
-                    ANSWER = f"Error: {e}"
+                    answer = f"Error: {e}"
+
+                # escape $ in the answer to avoid Streamlit interpreting it as LaTeX
+                ANSWER = answer.replace("$", "\\$")
+
                 st.write(ANSWER)
                 st.session_state.chat.append({"role": "assistant", "content": ANSWER})
 

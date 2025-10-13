@@ -79,6 +79,23 @@ def usage_summary_by_compartment(start_date: str, end_date: str) -> Dict[str, An
 def usage_breakdown_for_service_by_compartment(
     start_date: str, end_date: str, service_name: str
 ) -> Dict[str, Any]:
+    """
+    Return the consumption for
+    - a given time interval (start_date, end_date)
+    - a iven service (service_name)
+
+    broken down by compartment.
+
+    Args:
+        start_date: start date of the period. Format: YYYY-MM-DD
+        end_date: end date of the period. Format: YYYY-MM-DD
+        service_name: name of the service (case-insensitive, substring ok)
+
+    Returns:
+        a structure with rows with details of consumption by compartments.
+        One row for compartment.
+
+    """
     try:
         results = fetch_consumption_by_compartment(start_date, end_date, service_name)
     except Exception as e:
