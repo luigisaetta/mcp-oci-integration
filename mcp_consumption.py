@@ -28,16 +28,20 @@ mcp = create_server("OCI Consumption MCP server")
 @mcp.tool
 def usage_summary_by_service(start_date: str, end_date: str) -> Dict[str, Any]:
     """
-    Return the consumption aggregated by service.
+    Return the total consumption aggregated by service within a specified time period.
 
     Args:
-        start_date: start date of the period. Format: YYYY-MM-DD
-        end_date: end date of the period. Format: YYYY-MM-DD
+        start_date (str): Start date of the period, in ISO format (YYYY-MM-DD).
+        end_date (str): End date of the period, in ISO format (YYYY-MM-DD).
+            The time window between start_date and end_date must not exceed 93 days.
 
     Returns:
-        a structure with details of consumption.
+        dict: A structured dictionary containing consumption details aggregated by service.
 
+    Raises:
+        Error: If the time period exceeds 93 days, or any other errors occurs.
     """
+
     if DEBUG:
         logger.info("Called generate_sql...")
 
@@ -53,18 +57,21 @@ def usage_summary_by_service(start_date: str, end_date: str) -> Dict[str, Any]:
 @mcp.tool
 def usage_summary_by_compartment(start_date: str, end_date: str) -> Dict[str, Any]:
     """
-    Return the consumption aggregated by compartment.
+    Return the total consumption aggregated by compartment within a specified period.
 
     Args:
-        start_date: start date of the period. Format: YYYY-MM-DD
-        end_date: end date of the period. Format: YYYY-MM-DD
+        start_date (str): Start date of the period, in ISO format (YYYY-MM-DD).
+        end_date (str): End date of the period, in ISO format (YYYY-MM-DD).
+            The time window between start_date and end_date must not exceed 93 days.
 
     Returns:
-        a structure with details of consumption.
+        dict: A structured dictionary containing consumption details aggregated by compartment.
 
+    Raises:
+        Error: If the time period exceeds 93 days, or any other errors occurs.
     """
     if DEBUG:
-        logger.info("Called generate_sql...")
+        logger.info("Called usage_summary_by_compartment...")
 
     try:
         results = usage_summary_by_compartment_structured(start_date, end_date)
@@ -80,21 +87,22 @@ def usage_breakdown_for_service_by_compartment(
     start_date: str, end_date: str, service_name: str
 ) -> Dict[str, Any]:
     """
-    Return the consumption for
-    - a given time interval (start_date, end_date)
-    - a iven service (service_name)
-
+    Return the consumption for a specific service within a given time period,
     broken down by compartment.
 
     Args:
-        start_date: start date of the period. Format: YYYY-MM-DD
-        end_date: end date of the period. Format: YYYY-MM-DD
-        service_name: name of the service (case-insensitive, substring ok)
+        start_date (str): Start date of the period, in ISO format (YYYY-MM-DD).
+        end_date (str): End date of the period, in ISO format (YYYY-MM-DD).
+            The time window between start_date and end_date must not exceed 93 days.
+        service_name (str): Name of the service to filter by.
+            Case-insensitive and substring matches are allowed.
 
     Returns:
-        a structure with rows with details of consumption by compartments.
-        One row for compartment.
+        dict: A structured dictionary containing consumption details by compartment.
+            Each entry corresponds to one compartment.
 
+    Raises:
+        Error: If the time period exceeds 93 days, or any other errors occurs.
     """
     try:
         results = fetch_consumption_by_compartment(start_date, end_date, service_name)

@@ -171,7 +171,7 @@ def _filter_items_by_service(items: List[Any], service_key: str) -> List[Any]:
 
 
 def main():
-    if not (1 <= MAX_COMPARTMENT_DEPTH <= 7):
+    if not 1 <= MAX_COMPARTMENT_DEPTH <= 7:
         print("ERROR: MAX_COMPARTMENT_DEPTH must be 1..7")
         sys.exit(2)
 
