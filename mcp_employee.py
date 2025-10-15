@@ -2,7 +2,7 @@
 Simulate an MCP server giving access to Employeee API
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from employee_api import get_employee, list_employees
 from mcp_utils import create_server, run_server
