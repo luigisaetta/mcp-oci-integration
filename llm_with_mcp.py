@@ -1,12 +1,11 @@
 """
-Test LLM and MCP
 Based on fastmcp library.
 This one provide also support for security in MCP calls, using JWT token.
 
 This is the backend for the Streamlit MCP UI.
 
 15/09: the code is a bit long to handle some exceptions regarding tool calling
-with alle the non-cohere models through Langchain.
+with all the non-cohere models through Langchain.
 As for now, it is working fine with: Cohere, GPT and grok,
 some problems with llama 3.3
 """

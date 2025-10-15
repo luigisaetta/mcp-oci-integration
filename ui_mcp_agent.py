@@ -21,17 +21,25 @@ st.title(UI_TITLE)
 
 # ---------- Sidebar: connection settings ----------
 with st.sidebar:
-    st.header("Connection")
-    mcp_url = st.text_input("MCP URL", value=MCP_SERVERS_CONFIG["default"]["url"])
+    with st.sidebar.container():
+        st.subheader("Connection")
+        mcp_url = st.text_input("MCP URL", value=MCP_SERVERS_CONFIG["default"]["url"])
 
-    model_id = st.selectbox(
-        "Model",
-        MODEL_LIST,
-        index=0,
-    )
-    timeout = st.number_input(
-        "Timeout (s)", min_value=5, max_value=300, value=60, step=5
-    )
+        timeout = st.number_input(
+            "Timeout (s)", min_value=5, max_value=300, value=60, step=5
+        )
+
+    st.divider()
+
+    with st.sidebar.container():
+        st.subheader("LLM Model")
+        model_id = st.selectbox(
+            "Model",
+            MODEL_LIST,
+            index=0,
+        )
+
+    st.divider()
 
     connect = st.button("🔌 Connect / Reload tools", use_container_width=True)
 

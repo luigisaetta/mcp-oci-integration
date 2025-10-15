@@ -22,10 +22,12 @@ import yaml
 from fastmcp import FastMCP, Client
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 
+# to get a valid JWT token for the calls to the backends
 from llm_with_mcp import default_jwt_supplier
 
 # ---------- DEBUG TOGGLE ----------
-DEBUG = False  # Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
+# Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
+DEBUG = False
 
 
 # ---------- logging ----------
@@ -366,5 +368,6 @@ class Aggregator:
 if __name__ == "__main__":
     # Entry point: load config, bootstrap (discover & register tools), then serve HTTP.
     agg = Aggregator("aggregator_config.yaml")
+
     asyncio.run(agg.bootstrap())
     agg.run(host=agg.host, port=agg.port)
