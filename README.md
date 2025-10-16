@@ -8,6 +8,10 @@ This repository contains code and examples to help in the following tasks:
 * **Integrate** MCP Servers with OCI **APM** for **Observability**
 * **how-to** create a **docker** image for your MCP server
 
+**Author**: L. Saetta
+
+**Reviewed**: 15.10.2025
+
 ![MCP console](./images/mcp_cli.png)
 
 ## What is MCP?

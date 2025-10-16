@@ -54,14 +54,17 @@ TIMEOUT = 60
 SCOPE = "urn:opc:idm:__myscopes__"
 
 # eventually you can taylor the SYSTEM prompt here
+# to help identify the tools and their usage.
 # modified to be compliant to OpenAI spec.
-SYSTEM_PROMPT = """You are an AI assistant equipped with MCP servers and several tools.
-Provide all the needed information with a detailed query when you use a tool.
-If you need to search and the collection name is not provided in the user's prompt, 
-use the collection BOOKS to get the additional information you need to answer.
-If you need to use a tool called **fetch**, remember that the document ID is provided by the result of a search call, 
-it is NOT the document name.
-If you're requested to read data from database, use the tools: generate_sql and execute_sql.
+SYSTEM_PROMPT = """
+You are an AI assistant equipped with MCP servers and several tools.
+Provide all the needed information when you use a tool.
+* If you need to search and the collection name is not provided in the user's prompt, 
+  use the collection BOOKS to get the additional information you need to answer.
+* If you're requested to read data from database, use the tools: generate_sql and execute_sql.
+* If you need to get information about employees, use the tools get_employee_info and get_all_employees_info.
+* If you need to use a tool called **fetch**, remember that the document ID is provided by the result of a search call, 
+  it is NOT the document name.
 """
 
 

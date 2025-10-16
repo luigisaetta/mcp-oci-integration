@@ -26,7 +26,7 @@ mcp = create_server("OCI HCM MCP server")
 # results are wrapped
 #
 @mcp.tool
-def get_employee_info(identifier: str | int) -> Dict[str, Any]:
+def get_employee_info(identifier: str) -> Dict[str, Any]:
     """
     Return employee data.
 
@@ -39,7 +39,7 @@ def get_employee_info(identifier: str | int) -> Dict[str, Any]:
     Examples:
         >>> get_employee_info(1010)
         {
-            "employee_id": 1010,
+            "employee_id": "1010",
             "employee_name": "Jakob Johansson",
             "dept_name": "Security Engineering",
             "location": "Stockholm, Sweden",
@@ -66,7 +66,8 @@ def get_all_employees_info() -> dict:
     Return the list of all employees.
 
     Returns:
-        list[dict]: List of employee dictionaries.
+        dict: with this structure:
+        {"ok": bool, "employees": list[dict], "error": str | None}
 
     Examples:
         >>> get_all_employees_info()

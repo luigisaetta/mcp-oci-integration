@@ -56,8 +56,8 @@ SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com
 if REGION == "us-chicago-1":
     # for now only available in chicago region
     MODEL_LIST = [
-        "xai.grok-3",
         "xai.grok-4",
+        "xai.grok-3",
         "openai.gpt-4.1",
         "openai.gpt-4o",
         "openai.gpt-5",
@@ -80,7 +80,7 @@ DEFAULT_COLLECTION = "BOOKS"
 
 # history management (put -1 if you want to disable trimming)
 # consider that we have pair (human, ai) so use an even (ex: 6) value
-MAX_MSGS_IN_HISTORY = 6
+MAX_MSGS_IN_HISTORY = 8
 
 # reranking enabled or disabled from UI
 

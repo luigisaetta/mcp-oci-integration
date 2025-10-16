@@ -5,7 +5,7 @@ Streamlit UI for MCP servers
 import asyncio
 import traceback
 import streamlit as st
-from config import MODEL_LIST, UI_TITLE
+from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console
@@ -29,8 +29,11 @@ with st.sidebar:
             "Timeout (s)", min_value=5, max_value=300, value=60, step=5
         )
 
+    is_jwt_enable = st.toggle("Enable JWT tokens", value=ENABLE_JWT_TOKEN)
+
     st.divider()
 
+    # ---------- Sidebar: LLM settings ----------
     with st.sidebar.container():
         st.subheader("LLM Model")
         model_id = st.selectbox(

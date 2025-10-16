@@ -8,7 +8,7 @@ fake employee API
 
 employees = [
     {
-        "employee_id": 1001,
+        "employee_id": "1001",
         "employee_name": "Alice Rossi",
         "dept_name": "OCI Engineering",
         "location": "Milan, Italy",
@@ -16,7 +16,7 @@ employees = [
         "vacation_days_taken": 12,
     },
     {
-        "employee_id": 1002,
+        "employee_id": "1002",
         "employee_name": "Bruno Schneider",
         "dept_name": "Cloud Infrastructure",
         "location": "Zurich, Switzerland",
@@ -24,7 +24,7 @@ employees = [
         "vacation_days_taken": 7,
     },
     {
-        "employee_id": 1003,
+        "employee_id": "1003",
         "employee_name": "Carla Dupont",
         "dept_name": "AI Services",
         "location": "Paris, France",
@@ -32,7 +32,7 @@ employees = [
         "vacation_days_taken": 18,
     },
     {
-        "employee_id": 1004,
+        "employee_id": "1004",
         "employee_name": "David Novak",
         "dept_name": "Database Development",
         "location": "Prague, Czech Republic",
@@ -40,7 +40,7 @@ employees = [
         "vacation_days_taken": 4,
     },
     {
-        "employee_id": 1005,
+        "employee_id": "1005",
         "employee_name": "Elena Popescu",
         "dept_name": "Analytics & BI",
         "location": "Bucharest, Romania",
@@ -48,7 +48,7 @@ employees = [
         "vacation_days_taken": 10,
     },
     {
-        "employee_id": 1006,
+        "employee_id": "1006",
         "employee_name": "Francesco Greco",
         "dept_name": "Finance Systems",
         "location": "Rome, Italy",
@@ -56,7 +56,7 @@ employees = [
         "vacation_days_taken": 21,
     },
     {
-        "employee_id": 1007,
+        "employee_id": "1007",
         "employee_name": "Greta Müller",
         "dept_name": "Human Resources",
         "location": "Berlin, Germany",
@@ -64,7 +64,7 @@ employees = [
         "vacation_days_taken": 6,
     },
     {
-        "employee_id": 1008,
+        "employee_id": "1008",
         "employee_name": "Hugo Fernandez",
         "dept_name": "Customer Success",
         "location": "Madrid, Spain",
@@ -72,7 +72,7 @@ employees = [
         "vacation_days_taken": 14,
     },
     {
-        "employee_id": 1009,
+        "employee_id": "1009",
         "employee_name": "Isabelle Laurent",
         "dept_name": "Legal & Compliance",
         "location": "Brussels, Belgium",
@@ -80,7 +80,7 @@ employees = [
         "vacation_days_taken": 19,
     },
     {
-        "employee_id": 1010,
+        "employee_id": "1010",
         "employee_name": "Jakob Johansson",
         "dept_name": "Security Engineering",
         "location": "Stockholm, Sweden",
@@ -94,9 +94,9 @@ employees = [
 # ---------------------------
 
 
-def get_employee(identifier: str | int) -> dict | None:
+def get_employee(identifier: str) -> dict | None:
     """
-    Return employee information by employee_id (int) or employee_name (str).
+    Return employee information by employee_id (str) or employee_name (str).
 
     Args:
         identifier: int or str — the employee id or name (case-insensitive).
@@ -105,7 +105,7 @@ def get_employee(identifier: str | int) -> dict | None:
         dict | None: Employee dictionary if found, else None.
     """
     for emp in employees:
-        if isinstance(identifier, int) and emp["employee_id"] == identifier:
+        if isinstance(identifier, str) and emp["employee_id"] == identifier:
             return emp
         if (
             isinstance(identifier, str)
