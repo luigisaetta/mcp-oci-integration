@@ -171,21 +171,25 @@ async def discover_all(
 st.set_page_config(page_title="MCP Aggregator – Backends & Tools", layout="wide")
 st.title("MCP Aggregator – Backends & Tools")
 
+# Load config
+DEFAULT_CFG_PATH = "aggregator_config.yaml"
+
+try:
+    backends, timeout, enable_jwt, cfg = load_config(DEFAULT_CFG_PATH)
+except Exception as e:
+    st.error(f"Failed to load config: {e}")
+    st.stop()
+
 with st.sidebar:
     st.header("Configuration")
     cfg_path = st.text_input(
         "Path to aggregator_config.yaml", value="aggregator_config.yaml"
     )
+    st.text_input(label="timeout", value=timeout, disabled=True)
+    st.text_input(label="enable_jwt", value=enable_jwt, disabled=True)
+
     do_refresh = st.button("Refresh", type="primary")
     st.markdown("---")
-
-
-# Load config
-try:
-    backends, timeout, enable_jwt, cfg = load_config(cfg_path)
-except Exception as e:
-    st.error(f"Failed to load config: {e}")
-    st.stop()
 
 
 # Cache discovery keyed by a deterministic signature

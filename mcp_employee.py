@@ -37,7 +37,7 @@ def get_employee_info(identifier: str) -> Dict[str, Any]:
         dict: data regarding employee.
 
     Examples:
-        >>> get_employee_info(1010)
+        >>> get_employee_info("1010")
         {
             "employee_id": "1010",
             "employee_name": "Jakob Johansson",
