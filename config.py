@@ -106,7 +106,7 @@ AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 # for Select AI
 # SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_F1"
 # this one with SH schema
-SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE"
+SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_BANKS"
 
 # UI
 UI_TITLE = "🛠️ AI Assistant powered by MCP"

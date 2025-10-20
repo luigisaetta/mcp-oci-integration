@@ -57,7 +57,7 @@ def run_server(mcp):
         raise RuntimeError(f"Unsupported TRANSPORT: {TRANSPORT}")
 
     # parse CLI arguments to eventually get the port
-    parser = argparse.ArgumentParser(description="Run the Select AI MCP server")
+    parser = argparse.ArgumentParser(description="Run the MCP server")
     parser.add_argument(
         "--port",
         type=int,
