@@ -57,6 +57,7 @@ if REGION == "us-chicago-1":
     # for now only available in chicago region
     MODEL_LIST = [
         "xai.grok-4",
+        "xai.grok-4-fast-reasoning",
         "xai.grok-3",
         "openai.gpt-4.1",
         "openai.gpt-4o",

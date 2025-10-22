@@ -79,7 +79,7 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
         model_id=model_id,
         service_endpoint=SERVICE_ENDPOINT,
         compartment_id=COMPARTMENT_ID,
-        # changed to solve OpenAI issue
+        # changed to solve OpenAI/Grok4 issue
         is_stream=False,
         model_kwargs=_model_kwargs,
     )

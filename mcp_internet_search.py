@@ -1,5 +1,5 @@
 """
-This is an MCP Server that provides Internat Search capabilities.
+This is an MCP Server that provides Internet Search capabilities.
 """
 
 from typing import Dict, Any

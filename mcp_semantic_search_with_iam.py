@@ -44,7 +44,7 @@ def log_headers():
 @mcp.tool
 def get_collections() -> list:
     """
-    Get the list of collections (DB tables) available in the Oracle Vector Store.
+    Get the list of collections of documents available in the Oracle Vector Store.
     Returns:
         list: A list of collection names.
     """
@@ -56,17 +56,17 @@ def get_collections() -> list:
 
 
 @mcp.tool
-def get_books_in_collection(
+def get_documents_in_collection(
     collection_name: Annotated[
         str, Field(description="The name of the collection to search in.")
     ] = DEFAULT_COLLECTION,
 ) -> list:
     """
-    Get the list of books in a specific collection.
+    Get the list of documents in a specific collection.
     Args:
         collection_name (str): The name of the collection to search in.
     Returns:
-        list: A list of book titles in the specified collection.
+        list: A list of documents titles in the specified collection.
     """
     # check that a valid JWT is provided
     if ENABLE_JWT_TOKEN:

@@ -12,7 +12,7 @@ from config_private import BRAVE_API_KEY
 def main():
     """Simple test for BraveSearchClient."""
     api_key = os.getenv("BRAVE_API_KEY", BRAVE_API_KEY)
-    
+
     if not api_key:
         print("Please set BRAVE_API_KEY environment variable.")
         return
