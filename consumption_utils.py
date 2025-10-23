@@ -6,6 +6,7 @@ from datetime import datetime, date, timedelta, timezone
 from typing import Optional, Dict, Any, Tuple, List
 import oci
 from oci.usage_api import UsageapiClient
+from oci.identity import IdentityClient
 from oci.usage_api.models import RequestSummarizedUsagesDetails, Filter, Dimension
 
 MAX_COMPARTMENT_DEPTH = 7
@@ -579,3 +580,166 @@ def fetch_consumption_by_compartment(
             }
         )
     return result
+
+
+def usage_summary_by_service_for_compartment(
+    start_day: str | date,
+    end_day_inclusive: str | date,
+    compartment: str,  # OCID like 'ocid1.compartment...' OR exact name
+    *,
+    query_type: str = "COST",  # "COST" or "USAGE"
+    include_subcompartments: bool = True,
+    max_compartment_depth: int = 7,
+    config_profile: Optional[str] = "DEFAULT",
+) -> Dict[str, Any]:
+    """
+    Return a time-aggregated breakdown by service for the given compartment.
+    - If `compartment` is an OCID, it is used directly.
+    - If `compartment` is a name, it is resolved to OCID via IdentityClient
+      (exact name match; includes root tenancy name).
+    """
+    qt = query_type.upper()
+    if qt not in ("COST", "USAGE"):
+        raise ValueError("query_type must be 'COST' or 'USAGE'")
+    if not (1 <= int(max_compartment_depth) <= 7):
+        raise ValueError("max_compartment_depth must be between 1 and 7")
+
+    # Time window (end exclusive as required by the Usage API)
+    start = _to_utc_midnight(start_day)
+    end_excl = _to_utc_midnight(
+        date.fromisoformat(str(end_day_inclusive)) + timedelta(days=1)
+    )
+    depth = _effective_depth(include_subcompartments, int(max_compartment_depth))
+
+    # Usage API client and cfg (your existing helper)
+    usage_client, cfg = _make_client(config_profile)
+    tenancy_id = cfg.get("tenancy")
+    if not tenancy_id:
+        raise RuntimeError("Cannot determine tenancy OCID (check auth).")
+
+    # Resolve compartment -> OCID (inline; no extra helpers)
+    if compartment.startswith("ocid1.compartment."):
+        compartment_id = compartment
+    else:
+        # Build IdentityClient consistent with auth used by _make_client
+        if "user" in cfg:  # config-file auth
+            id_client = IdentityClient(cfg)
+        else:  # Resource Principals
+            rp_signer = oci.auth.signers.get_resource_principals_signer()
+            id_client = IdentityClient(
+                {"region": cfg["region"], "tenancy": tenancy_id}, signer=rp_signer
+            )
+
+        # Match root tenancy name
+        tenancy = id_client.get_tenancy(tenancy_id).data
+        if tenancy.name == compartment:
+            compartment_id = tenancy_id
+        else:
+            # Traverse subtree and find exact name match
+            comps = oci.pagination.list_call_get_all_results(
+                id_client.list_compartments,
+                tenancy_id,  # required positional parent compartment_id
+                access_level="ACCESSIBLE",
+                compartment_id_in_subtree=True,
+            ).data
+            exact = [c for c in comps if c.name == compartment]
+            if len(exact) == 1:
+                compartment_id = exact[0].id
+            elif len(exact) > 1:
+                raise ValueError(
+                    f"Multiple compartments named '{compartment}'. Use OCID."
+                )
+            else:
+                raise ValueError(
+                    f"Compartment '{compartment}' not found among accessible compartments."
+                )
+
+    # Server-side filter by compartment and group by service
+    flt = Filter(
+        operator="AND",
+        dimensions=[Dimension(key="compartmentId", value=compartment_id)],
+    )
+    details = RequestSummarizedUsagesDetails(
+        tenant_id=tenancy_id,
+        time_usage_started=start,
+        time_usage_ended=end_excl,
+        granularity=RequestSummarizedUsagesDetails.GRANULARITY_DAILY,
+        query_type=qt,
+        group_by=["service"],
+        is_aggregate_by_time=False,  # aggregate across the whole period
+        filter=flt,
+        compartment_depth=depth,
+    )
+
+    resp = usage_client.request_summarized_usages(details)
+    items = getattr(resp.data, "items", []) or []
+
+    # Fold per service
+    buckets: Dict[str, Dict[str, Any]] = {}
+    total_amount = 0.0
+    total_qty = 0.0
+    currency_seen = None
+    unit_seen = None
+
+    for it in items:
+        svc = _extract_group_value(it, "service") or "UNKNOWN"
+        if svc not in buckets:
+            buckets[svc] = {"service": svc, "amount": 0.0, "quantity": 0.0}
+
+        if qt == "COST":
+            val = float(getattr(it, "computed_amount", 0.0) or 0.0)
+            buckets[svc]["amount"] += val
+            total_amount += val
+            currency_seen = currency_seen or getattr(it, "currency", None)
+        else:
+            val = float(getattr(it, "computed_quantity", 0.0) or 0.0)
+            buckets[svc]["quantity"] += val
+            total_qty += val
+            unit_seen = unit_seen or getattr(it, "unit", None)
+
+    # Normalize + share %
+    rows: List[Dict[str, Any]] = []
+    denom = total_amount if qt == "COST" else total_qty
+    for svc, agg in buckets.items():
+        base = agg["amount"] if qt == "COST" else agg["quantity"]
+        rows.append(
+            {
+                "service": svc,
+                "amount": _round_or_none(agg["amount"]) if qt == "COST" else None,
+                "quantity": _round_or_none(agg["quantity"]) if qt == "USAGE" else None,
+                "currency": currency_seen if qt == "COST" else None,
+                "unit": unit_seen if qt == "USAGE" else None,
+                "share_pct": _round_or_none((base / denom * 100.0) if denom else 0.0),
+            }
+        )
+
+    # Sort by primary metric
+    key = "amount" if qt == "COST" else "quantity"
+    rows.sort(key=lambda r: (r.get(key) or 0.0), reverse=True)
+
+    return {
+        "period": {
+            "start_inclusive": start,
+            "end_exclusive": end_excl,
+            "query_type": qt,
+            "aggregated_over_time": True,
+        },
+        "scope": {
+            "compartment_input": compartment,
+            "resolved_compartment_id": compartment_id,
+            "include_subcompartments": include_subcompartments,
+            "depth": depth,
+        },
+        "group_by": ["service"],
+        "items": rows,
+        "totals": {
+            "amount": _round_or_none(total_amount) if qt == "COST" else None,
+            "quantity": _round_or_none(total_qty) if qt == "USAGE" else None,
+        },
+        "metadata": {
+            "region": cfg.get("region"),
+            "opc_request_id": (
+                resp.headers.get("opc-request-id") if hasattr(resp, "headers") else None
+            ),
+        },
+    }

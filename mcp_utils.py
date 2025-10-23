@@ -64,6 +64,12 @@ def run_server(mcp):
         default=PORT,
         help=f"Port to run the MCP server on (default: {PORT} from config.py)",
     )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default=HOST,
+        help=f"IP address to run the MCP server on (default: {HOST} from config.py)",
+    )
     args = parser.parse_args()
 
     # run the MCP server
@@ -72,6 +78,6 @@ def run_server(mcp):
     else:
         mcp.run(
             transport=TRANSPORT,
-            host=HOST,
+            host=args.host,
             port=args.port,
         )
