@@ -17,7 +17,7 @@ setup_tracing(
 
 
 @trace_span("rag.embed", model="cohere-embed-v4")
-def embed(text: str):
+def embed():
     """
     simulate embed call
     """
@@ -26,7 +26,7 @@ def embed(text: str):
 
 
 @trace_span("rag.vector_search", db_system="oracle", oracle_selectai=True)
-def vector_search(vec):
+def vector_search():
     """
     simulate vector search
     """
@@ -46,8 +46,8 @@ def rag_query(user_query: str):
     simulate a RAG query with tracing
     """
     with start_span("test01", rag_user_query=user_query):
-        v = embed(user_query)
-        docs = vector_search(v)
+        v = embed()
+        docs = vector_search()
         return generate(docs, user_query)
 
 
