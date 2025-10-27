@@ -10,7 +10,7 @@ This repository contains code and examples to help in the following tasks:
 
 **Author**: L. Saetta
 
-**Reviewed**: 15.10.2025
+**Reviewed**: 27.10.2025
 
 ![MCP console](./images/mcp_cli.png)
 
@@ -33,7 +33,7 @@ The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/we
 **Examples**:
 * in [Minimal MCP Server](./minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect them using [JWT](https://www.jwt.io/introduction#what-is-json-web-token).
 
-If you want to start with **something simpler**, have a look at [how to start developing MCP](./how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
+If you want to start with **something simpler**, have a look at [how to start developing MCP](./docs/how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
 
 ## How to test
 If you want to quickly test the MCP server you developed (or the minimal example provided here) you can use the [Streamlit UI](./ui_mcp_agent.py).
@@ -78,7 +78,7 @@ Soon, we'll add a server fully compliant with **OpenAI** specifications, that ca
 
 An initial implementation is available [here](./mcp_deep_research_with_iam.py)
 
-Details available [here](./integrate_chatgpt.md)
+Details available [here](./docs/integrate_chatgpt.md)
 
 ## Integrate OCI ADB Select AI
 Another option is to use an MCP server to be able to integrate OCI **SelectAI** in ChatGPT or other assistants supporting MCP.
@@ -105,5 +105,5 @@ How to Use:
 * Point the Assistant to the MCP URL (or to your MCP Aggregator).
 
 ## Integrate with OCI APM
-For more information, see [here](./integrate_apm.md)
+For more information, see [here](./docs/integrate_apm.md)
 
