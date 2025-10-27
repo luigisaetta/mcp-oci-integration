@@ -166,7 +166,7 @@ class AgentWithMCP:
 
     This is a rather simple agent, it does only tool calling,
     but tools are provided by the MCP server.
-    The code introspects the MCP server and decide which tool to call
+    The code introspects the MCP server and LLM decides which tool to call
     and what parameters to provide.
     """
 
