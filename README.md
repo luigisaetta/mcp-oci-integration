@@ -89,7 +89,7 @@ An example is [here](./mcp_selectai.py)
 For **Select AI** configuration, see [here](./configure_select_ai.md)
 
 ## OCI Consumption Analysis
-Another use case demonstrated in this set of demos is leveraging an AI Assistant powered by MCP servers to analyze the **OCI tenant consumption** in a natural and interactive way.
+Another use-case demonstrated in this set of demos is leveraging an AI Assistant powered by MCP servers to analyze the **OCI tenant consumption** in a natural and interactive way.
 
 Using the [MCP Consumption Server](./mcp_consumption.py), you can explore various dimensions of consumption and ask questions such as:
 * List the top 10 services by total amount for a given period (start_date, end_date).
@@ -104,6 +104,6 @@ How to Use:
 * Launch the AI Assistant
 * Point the Assistant to the MCP URL (or to your MCP Aggregator).
 
-### Security (Optional)
-You can enhance security by placing the MCP server behind an OCI API Gateway and enabling JWT-based authentication using OCI IAM.
+## Integrate with OCI APM
+For more information, see [here](./integrate_apm.md)
 
