@@ -97,8 +97,12 @@ PORT = 9000
 
 # with this we can toggle JWT token auth
 ENABLE_JWT_TOKEN = False
-# for JWT token with OCI
-# put your domain URL here
+
+# can be OCI_IAM or IBM_CONTEXT_FORGE
+# JWT_TOKEN_PROVIDER = "IBM_CONTEXT_FORGE"
+JWT_TOKEN_PROVIDER = "OCI_IAM"
+
+# for OCI_IAM put your domain URL here
 IAM_BASE_URL = "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
 # these are used during the verification of the token
 ISSUER = "https://identity.oraclecloud.com/"
@@ -108,6 +112,11 @@ AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 # SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_F1"
 # this one with SH schema
 SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_BANKS"
+
+# APM integration
+ENABLE_TRACING = True
+OTEL_SERVICE_NAME = "llm-mcp-agent"
+OCI_APM_TRACES_URL = "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.oci.oraclecloud.com/20200101/opentelemetry/private/v1/traces"
 
 # UI
 UI_TITLE = "🛠️ AI Assistant powered by MCP"

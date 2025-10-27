@@ -9,9 +9,13 @@ import streamlit as st
 from fastmcp import Client
 
 from oci_jwt_client import OCIJWTClient
+
+# added to integrate with MCP_CONTEXT_FORGE gateway from IBM
+from mcp_context_forge_jwt_client import get_jwt_token
 from utils import get_console_logger
-from config import DEBUG, ENABLE_JWT_TOKEN, IAM_BASE_URL
-from config_private import SECRET_OCID
+
+from config import DEBUG, ENABLE_JWT_TOKEN, JWT_TOKEN_PROVIDER, IAM_BASE_URL
+from config_private import SECRET_OCID, JWT_FORGE_ISSUER, JWT_FORGE_PWD
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 # the scope for the JWT token
@@ -39,25 +43,33 @@ async def fetch_tools():
     This function call the MCP server to get list and descriptions of tools
     """
     if ENABLE_JWT_TOKEN:
-        # this is a client to OCI IAM to get the JWT token
         logger.info("----------------------------")
         logger.info("--- Using JWT based auth ---")
         logger.info("----------------------------")
         logger.info("Getting JWT token...")
 
-        client_4_token = OCIJWTClient(IAM_BASE_URL, SCOPE, SECRET_OCID)
+        if JWT_TOKEN_PROVIDER == "OCI_IAM":
+            client_4_token = OCIJWTClient(IAM_BASE_URL, SCOPE, SECRET_OCID)
 
-        token, _, _ = client_4_token.get_token()
+            token, _, _ = client_4_token.get_token()
 
-        if DEBUG:
-            logger.info("Token: %s", token)
-            logger.info("Scope: %s", SCOPE)
-            logger.info("IAM Base URL: %s", IAM_BASE_URL)
+            if DEBUG:
+                logger.info("Token: %s", token)
+                logger.info("Scope: %s", SCOPE)
+                logger.info("IAM Base URL: %s", IAM_BASE_URL)
+        elif JWT_TOKEN_PROVIDER == "IBM_CONTEXT_FORGE":
+            token = get_jwt_token(JWT_FORGE_ISSUER, JWT_FORGE_PWD)
+
+            if DEBUG:
+                logger.info("Token: %s", token)
+        else:
+            raise ValueError(f"Unknown JWT_TOKEN_PROVIDER: {JWT_TOKEN_PROVIDER}")
 
         logger.info("")
 
         client = Client(server_url, auth=token, timeout=TIMEOUT)
     else:
+        # no auth
         client = Client(server_url, timeout=TIMEOUT)
 
     async with client:

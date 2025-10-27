@@ -8,6 +8,8 @@ This is the backend for the Streamlit MCP UI.
 with all the non-cohere models through Langchain.
 As for now, it is working fine with: Cohere, GPT and grok,
 some problems with llama 3.3
+
+27/10/2024: added APM tracing support
 """
 
 import json
@@ -26,8 +28,18 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from oci_jwt_client import OCIJWTClient
 from oci_models import get_llm
 from utils import get_console_logger
-from config import IAM_BASE_URL, ENABLE_JWT_TOKEN, DEBUG
-from config_private import SECRET_OCID
+
+# to integrate with OCI APM tracing
+from tracing_utils import setup_tracing, start_span
+
+from config import (
+    IAM_BASE_URL,
+    ENABLE_JWT_TOKEN,
+    DEBUG,
+    OCI_APM_TRACES_URL,
+    OTEL_SERVICE_NAME,
+)
+from config_private import SECRET_OCID, OCI_APM_DATA_KEY
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 from log_helpers import (
@@ -175,6 +187,14 @@ class AgentWithMCP:
 
         self.logger = logger
 
+        # added to integrate with APM tracing
+        setup_tracing(
+            service_name=OTEL_SERVICE_NAME,
+            apm_traces_url=OCI_APM_TRACES_URL,
+            data_key=OCI_APM_DATA_KEY,
+            propagator="tracecontext",
+        )
+
     # ---------- helpers now INSIDE the class ----------
 
     @staticmethod
@@ -308,57 +328,63 @@ class AgentWithMCP:
         )
 
         while True:
-            ai: AIMessage = await self.model_with_tools.ainvoke(messages)
+            # added to integrate with APM tracing
+            with start_span("mcp_agent.llm_invoke", model=self.llm.model_id):
+                logger.info("Invoking LLM...")
 
-            if DEBUG:
-                log_history_tail(messages, k=4, log=self.logger)
-                log_ai_tool_calls(ai, log=self.logger)
+                ai: AIMessage = await self.model_with_tools.ainvoke(messages)
 
-            tool_calls = getattr(ai, "tool_calls", None) or []
-            if not tool_calls:
-                # Final answer
-                return ai.content
+                if DEBUG:
+                    log_history_tail(messages, k=4, log=self.logger)
+                    log_ai_tool_calls(ai, log=self.logger)
 
-            messages.append(ai)  # keep the AI msg that requested tools
+                tool_calls = getattr(ai, "tool_calls", None) or []
+                if not tool_calls:
+                    # Final answer
+                    return ai.content
 
-            # Execute tool calls and append ToolMessage for each
-            tool_msgs = []
-            for tc in tool_calls:
-                name = tc["name"]
-                args = tc.get("args") or {}
-                try:
-                    # here we call the tool
-                    result = await self._call_tool(name, args)
-                    payload = (
-                        getattr(result, "data", None)
-                        or getattr(result, "content", None)
-                        or str(result)
-                    )
-                    # to avoid double encoding
-                    tool_content = (
-                        json.dumps(payload, ensure_ascii=False)
-                        if isinstance(payload, (dict, list))
-                        else str(payload)
-                    )
-                    tm = ToolMessage(
-                        content=tool_content,
-                        # must match the call id
-                        tool_call_id=tc["id"],
-                        name=name,
-                    )
-                    messages.append(tm)
+                messages.append(ai)  # keep the AI msg that requested tools
 
-                    # this is for debugging, if needed
-                    if DEBUG:
-                        tool_msgs.append(tm)
-                except Exception as e:
-                    messages.append(
-                        ToolMessage(
-                            content=json.dumps({"error": str(e)}),
-                            tool_call_id=tc["id"],
-                            name=name,
+                # Execute tool calls and append ToolMessage for each
+                tool_msgs = []
+                for tc in tool_calls:
+                    name = tc["name"]
+                    args = tc.get("args") or {}
+                    try:
+                        # here we call the tool
+                        with start_span("mcp_agent.tool_call", tool=name):
+                            result = await self._call_tool(name, args)
+
+                            payload = (
+                                getattr(result, "data", None)
+                                or getattr(result, "content", None)
+                                or str(result)
+                            )
+                            # to avoid double encoding
+                            tool_content = (
+                                json.dumps(payload, ensure_ascii=False)
+                                if isinstance(payload, (dict, list))
+                                else str(payload)
+                            )
+                            tm = ToolMessage(
+                                content=tool_content,
+                                # must match the call id
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
+                            messages.append(tm)
+
+                        # this is for debugging, if needed
+                        if DEBUG:
+                            tool_msgs.append(tm)
+                    except Exception as e:
+                        messages.append(
+                            ToolMessage(
+                                content=json.dumps({"error": str(e)}),
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
                         )
-                    )
             if DEBUG:
                 check_linkage_or_die(ai, tool_msgs, log=self.logger)
                 _dump_pair_for_oci_debug(messages, self.logger)
