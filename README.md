@@ -86,7 +86,7 @@ In this way you have an option to do full **Text2SQL** search, over your databas
 
 An example is [here](./mcp_selectai.py)
 
-For **Select AI** configuration, see [here](./configure_select_ai.md)
+For **Select AI** configuration, see [here](./docs/configure_select_ai.md)
 
 ## OCI Consumption Analysis
 Another use-case demonstrated in this set of demos is leveraging an AI Assistant powered by MCP servers to analyze the **OCI tenant consumption** in a natural and interactive way.
