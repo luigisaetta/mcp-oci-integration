@@ -42,13 +42,7 @@ from config import (
 from config_private import SECRET_OCID, OCI_APM_DATA_KEY
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
-from log_helpers import (
-    log_tool_schemas,
-    log_history_tail,
-    log_ai_tool_calls,
-    check_linkage_or_die,
-    _dump_pair_for_oci_debug,
-)
+from log_helpers import log_tool_schemas, log_history_tail, log_ai_tool_calls
 
 # for debugging
 if DEBUG:
@@ -59,7 +53,7 @@ if DEBUG:
 logger = get_console_logger()
 
 # ---- Config ----
-# trim the history to max MAX_HOSTORY msgs
+# trim the history to max MAX_HISTORY msgs
 MAX_HISTORY = 10
 
 MCP_URL = MCP_SERVERS_CONFIG["default"]["url"]
@@ -168,6 +162,8 @@ class AgentWithMCP:
     but tools are provided by the MCP server.
     The code introspects the MCP server and LLM decides which tool to call
     and what parameters to provide.
+
+    27/10: added integration with OCI APM tracing
     """
 
     def __init__(
@@ -327,67 +323,65 @@ class AgentWithMCP:
             current_user_prompt=question,
         )
 
-        while True:
-            # added to integrate with APM tracing
-            with start_span("mcp_agent.llm_invoke", model=self.llm.model_id):
-                logger.info("Invoking LLM...")
+        with start_span("tool_calling_loop", model=self.llm.model_id):
+            while True:
+                # added to integrate with APM tracing
+                with start_span("llm_invoke", model=self.llm.model_id):
+                    logger.info("Invoking LLM...")
 
-                ai: AIMessage = await self.model_with_tools.ainvoke(messages)
+                    ai: AIMessage = await self.model_with_tools.ainvoke(messages)
 
-                if DEBUG:
-                    log_history_tail(messages, k=4, log=self.logger)
-                    log_ai_tool_calls(ai, log=self.logger)
+                    if DEBUG:
+                        log_history_tail(messages, k=4, log=self.logger)
+                        log_ai_tool_calls(ai, log=self.logger)
 
-                tool_calls = getattr(ai, "tool_calls", None) or []
-                if not tool_calls:
-                    # Final answer
-                    return ai.content
+                    tool_calls = getattr(ai, "tool_calls", None) or []
+                    if not tool_calls:
+                        # Final answer
+                        return ai.content
 
-                messages.append(ai)  # keep the AI msg that requested tools
+                    messages.append(ai)  # keep the AI msg that requested tools
 
-                # Execute tool calls and append ToolMessage for each
-                tool_msgs = []
-                for tc in tool_calls:
-                    name = tc["name"]
-                    args = tc.get("args") or {}
-                    try:
-                        # here we call the tool
-                        with start_span("mcp_agent.tool_call", tool=name):
-                            result = await self._call_tool(name, args)
+                    # Execute tool calls and append ToolMessage for each
+                    tool_msgs = []
+                    for tc in tool_calls:
+                        name = tc["name"]
+                        args = tc.get("args") or {}
+                        try:
+                            # here we call the tool
+                            with start_span("tool_call", tool=name):
+                                result = await self._call_tool(name, args)
 
-                            payload = (
-                                getattr(result, "data", None)
-                                or getattr(result, "content", None)
-                                or str(result)
+                                payload = (
+                                    getattr(result, "data", None)
+                                    or getattr(result, "content", None)
+                                    or str(result)
+                                )
+                                # to avoid double encoding
+                                tool_content = (
+                                    json.dumps(payload, ensure_ascii=False)
+                                    if isinstance(payload, (dict, list))
+                                    else str(payload)
+                                )
+                                tm = ToolMessage(
+                                    content=tool_content,
+                                    # must match the call id
+                                    tool_call_id=tc["id"],
+                                    name=name,
+                                )
+                                messages.append(tm)
+
+                            # this is for debugging, if needed
+                            if DEBUG:
+                                tool_msgs.append(tm)
+                        except Exception as e:
+                            messages.append(
+                                ToolMessage(
+                                    content=json.dumps({"error": str(e)}),
+                                    tool_call_id=tc["id"],
+                                    name=name,
+                                )
                             )
-                            # to avoid double encoding
-                            tool_content = (
-                                json.dumps(payload, ensure_ascii=False)
-                                if isinstance(payload, (dict, list))
-                                else str(payload)
-                            )
-                            tm = ToolMessage(
-                                content=tool_content,
-                                # must match the call id
-                                tool_call_id=tc["id"],
-                                name=name,
-                            )
-                            messages.append(tm)
-
-                        # this is for debugging, if needed
-                        if DEBUG:
-                            tool_msgs.append(tm)
-                    except Exception as e:
-                        messages.append(
-                            ToolMessage(
-                                content=json.dumps({"error": str(e)}),
-                                tool_call_id=tc["id"],
-                                name=name,
-                            )
-                        )
-            if DEBUG:
-                check_linkage_or_die(ai, tool_msgs, log=self.logger)
-                _dump_pair_for_oci_debug(messages, self.logger)
 
 
 # ---- Example CLI usage ----

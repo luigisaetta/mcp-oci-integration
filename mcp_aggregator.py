@@ -15,7 +15,7 @@ import asyncio
 import json
 import logging
 from typing import Dict, List, Optional
-
+import argparse
 import yaml
 
 # fastmcp >= 2.x (recommended >= 2.10.0)
@@ -367,7 +367,17 @@ class Aggregator:
 
 if __name__ == "__main__":
     # Entry point: load config, bootstrap (discover & register tools), then serve HTTP.
-    agg = Aggregator("aggregator_config.yaml")
+    # get config path
+    parser = argparse.ArgumentParser(description="MCP Aggregator")
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Path to yaml config file",
+    )
+    args = parser.parse_args()
+    cfg_path = args.config if args.config else "aggregator_config.yaml"
+
+    agg = Aggregator(cfg_path)
 
     asyncio.run(agg.bootstrap())
     agg.run(host=agg.host, port=agg.port)

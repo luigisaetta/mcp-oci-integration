@@ -114,7 +114,7 @@ AUDIENCE = ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 SELECT_AI_PROFILE = "OCI_GENERATIVE_AI_PROFILE_BANKS"
 
 # APM integration
-ENABLE_TRACING = True
+ENABLE_TRACING = False
 OTEL_SERVICE_NAME = "llm-mcp-agent"
 OCI_APM_TRACES_URL = "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.oci.oraclecloud.com/20200101/opentelemetry/private/v1/traces"
 
