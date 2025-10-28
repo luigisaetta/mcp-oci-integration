@@ -5,6 +5,10 @@ Streamlit UI for MCP servers
 import asyncio
 import traceback
 import streamlit as st
+
+# added pdf upload
+from pypdf import PdfReader
+
 from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
@@ -14,6 +18,24 @@ from llm_with_mcp import AgentWithMCP, default_jwt_supplier
 from utils import get_console_logger
 
 logger = get_console_logger()
+
+# max chars in pdf
+MAX_CHARS = 30000
+
+
+# NEW: PDF -> text (no OCR)
+def _extract_text_from_pdf(uploaded_file) -> str:
+    """
+    Extract text from a PDF uploaded via Streamlit.
+    Returns a single concatenated string.
+    Scanned PDFs without text will return ''.
+    """
+    reader = PdfReader(uploaded_file)
+    parts = []
+    for page in reader.pages:
+        parts.append(page.extract_text() or "")
+    return "\n".join(parts).strip()
+
 
 # ---------- Page setup ----------
 st.set_page_config(page_title="MCP UI", page_icon="🛠️", layout="wide")
@@ -42,7 +64,61 @@ with st.sidebar:
             index=0,
         )
 
-    st.divider()
+        st.divider()
+
+    # ---------- Sidebar: PDF ingestion (hidden context) ----------
+    with st.sidebar.container():
+        st.subheader("Document")
+        uploaded_pdf = st.file_uploader("Upload PDF", type=["pdf"])
+        add_pdf = st.button(
+            "➕ Add PDF to context (hidden)",
+            use_container_width=True,
+            disabled=uploaded_pdf is None,
+        )
+
+        if add_pdf and uploaded_pdf is not None:
+            try:
+                raw_text = _extract_text_from_pdf(uploaded_pdf)
+
+                if not raw_text:
+                    st.warning("No extractable text found (scanned PDF or empty).")
+                else:
+                    # Guardrail: keep within your model context budget
+                    # tune for your model/tokenizer
+
+                    truncated = False
+                    if len(raw_text) > MAX_CHARS:
+                        raw_text = (
+                            raw_text[:MAX_CHARS] + "\n\n...[Truncated for context size]"
+                        )
+                        truncated = True
+
+                        # Optional: keep the full text for debugging/storage
+                        st.session_state.last_pdf_text = (
+                            # here it’s already truncated
+                            raw_text
+                        )
+
+                    st.session_state.last_pdf_name = uploaded_pdf.name
+
+                    # Inject as a HIDDEN user message so the LLM treats it as user-provided content
+                    st.session_state.chat.append(
+                        {
+                            "role": "user",
+                            "content": f"[Context from PDF: {uploaded_pdf.name}]\n{raw_text}",
+                            # <-- key bit: do not render, but keep for the model
+                            "hidden": True,
+                        }
+                    )
+
+                    note = f"Added '{uploaded_pdf.name}' to context (hidden)."
+                    if truncated:
+                        note += " (truncated)"
+                    st.success(note)
+            except Exception as e:
+                st.error(f"Failed to read PDF: {e}")
+
+        st.divider()
 
     connect = st.button("🔌 Connect / Reload tools", use_container_width=True)
 
@@ -52,6 +128,10 @@ if "agent" not in st.session_state:
 if "chat" not in st.session_state:
     # list of {"role": "user"|"assistant", "content": str}
     st.session_state.chat = []
+if "last_pdf_name" not in st.session_state:
+    st.session_state.last_pdf_name = None
+if "last_pdf_text" not in st.session_state:
+    st.session_state.last_pdf_text = None
 
 
 def reset_conversation():
@@ -87,8 +167,18 @@ if st.sidebar.button("Clear Chat History"):
 
 # ---------- Chat history (display) ----------
 for msg in st.session_state.chat:
-    with st.chat_message("user" if msg["role"] == "user" else "assistant"):
-        st.write(msg["content"])
+    # NEW: hide messages explicitly marked as hidden
+    if msg.get("hidden", False):
+        # hidden is reserved to pdf text
+        continue
+
+    role = msg.get("role", "assistant")
+    # Only render user/assistant
+    if role not in ("user", "assistant"):
+        continue
+
+    with st.chat_message(role):
+        st.write(msg.get("content", ""))
 
 # ---------- Input box ----------
 prompt = st.chat_input("Ask your question…")

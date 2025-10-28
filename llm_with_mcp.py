@@ -228,6 +228,7 @@ class AgentWithMCP:
         """
         jwt = self.jwt_supplier()
         logger.info("Calling MCP tool '%s' with args %s", name, args)
+
         async with MCPClient(self.mcp_url, auth=jwt, timeout=self.timeout) as c:
             return await c.call_tool(name, args or {})
 
