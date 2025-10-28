@@ -19,8 +19,11 @@ from utils import get_console_logger
 
 logger = get_console_logger()
 
+# ---------- some configs ----------
 # max chars in pdf
 MAX_CHARS = 30000
+# seconds
+TIMEOUT = 60
 
 
 # NEW: PDF -> text (no OCR)
@@ -46,10 +49,6 @@ with st.sidebar:
     with st.sidebar.container():
         st.subheader("Connection")
         mcp_url = st.text_input("MCP URL", value=MCP_SERVERS_CONFIG["default"]["url"])
-
-        timeout = st.number_input(
-            "Timeout (s)", min_value=5, max_value=300, value=60, step=5
-        )
 
     is_jwt_enable = st.toggle("Enable JWT tokens", value=ENABLE_JWT_TOKEN)
 
@@ -85,7 +84,6 @@ with st.sidebar:
                 else:
                     # Guardrail: keep within your model context budget
                     # tune for your model/tokenizer
-
                     truncated = False
                     if len(raw_text) > MAX_CHARS:
                         raw_text = (
@@ -149,7 +147,7 @@ if connect:
                     mcp_url=mcp_url,
                     # returns a fresh raw JWT
                     jwt_supplier=default_jwt_supplier,
-                    timeout=timeout,
+                    timeout=TIMEOUT,
                     model_id=model_id,
                 )
             )
@@ -218,6 +216,6 @@ with st.expander("🔎 Debug / State"):
             "messages_in_memory": len(st.session_state.chat),
             "mcp_url": mcp_url,
             "model_id": model_id,
-            "timeout": timeout,
+            "timeout": TIMEOUT,
         }
     )
