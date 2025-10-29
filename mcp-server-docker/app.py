@@ -7,7 +7,15 @@ Biggest difference: the class used to verify JWT.
 """
 
 from fastmcp import FastMCP
-from config import ENABLE_JWT_TOKEN, IAM_BASE_URL, ISSUER, AUDIENCE, TRANSPORT, HOST, PORT
+from config import (
+    ENABLE_JWT_TOKEN,
+    IAM_BASE_URL,
+    ISSUER,
+    AUDIENCE,
+    TRANSPORT,
+    HOST,
+    PORT,
+)
 
 # to verify the JWT token
 # if you don't need to add security, you can remove this
