@@ -48,7 +48,6 @@ def get_collections() -> list:
     Returns:
         list: A list of collection names.
     """
-    # check that a valid JWT is provided
     if ENABLE_JWT_TOKEN:
         log_headers()
 
@@ -68,7 +67,6 @@ def get_documents_in_collection(
     Returns:
         list: A list of documents titles in the specified collection.
     """
-    # check that a valid JWT is provided
     if ENABLE_JWT_TOKEN:
         log_headers()
 
@@ -117,6 +115,8 @@ def search(
             )
             relevant_docs = v_store.similarity_search(query=query, k=TOP_K)
 
+            # we can add here a reranking step if needed
+            
             if DEBUG:
                 logger.info("Result from the similarity search:")
                 logger.info(relevant_docs)
