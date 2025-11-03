@@ -24,11 +24,16 @@ def list_adbs_in_compartment(compartment_id: str):
     config = oci.config.from_file()
     db_client = DatabaseClient(config)
 
-    adbs = oci.pagination.list_call_get_all_results(
+    adbs_raw = oci.pagination.list_call_get_all_results(
         db_client.list_autonomous_databases,
         compartment_id=compartment_id,
         retry_strategy=retry,
     ).data
+
+    adbs = []
+
+    for adb in adbs_raw:
+        adbs.append(_adb_row(adb))
 
     return adbs
 

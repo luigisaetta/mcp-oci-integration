@@ -11,6 +11,7 @@ from consumption_utils import (
     fetch_consumption_by_compartment,
     usage_summary_by_service_for_compartment,
 )
+from oci_utils import list_adbs_in_compartment, get_compartment_id_by_name
 from mcp_utils import create_server, run_server
 from utils import get_console_logger
 
@@ -141,6 +142,35 @@ def usage_breakdown_for_compartment_by_service(
         )
     except Exception as e:
         logger.error("Error generating breakdown: %s", e)
+        results = {"error": str(e)}
+
+    return results
+
+
+@mcp.tool
+def list_adb_for_compartment(compartment_name: str) -> Dict[str, Any]:
+    """
+    Return the list of Autonomous Databases in a given compartment.
+
+    Args:
+        compartment_name (str): Name of the compartment to filter by.
+            Case-insensitive and substring matches are allowed.
+
+    Returns:
+        dict: A structured dictionary containing Autonomous Database details.
+            Each entry corresponds to one Autonomous Database.
+    Raises:
+        Error: If any error occurs.
+    """
+    try:
+        compartment_id = get_compartment_id_by_name(compartment_name)
+        if not compartment_id:
+            raise ValueError(f"Compartment '{compartment_name}' not found")
+
+        adbs = list_adbs_in_compartment(compartment_id)
+        results = {"autonomous_databases": adbs}
+    except Exception as e:
+        logger.error("Error listing Autonomous Databases: %s", e)
         results = {"error": str(e)}
 
     return results
