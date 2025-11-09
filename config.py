@@ -46,7 +46,7 @@ NVIDIA_EMBED_MODEL_URL = ""
 
 # LLM
 # this is the default model
-LLM_MODEL_ID = "meta.llama-3.3-70b-instruct"
+LLM_MODEL_ID = "xai.grok-4"
 TEMPERATURE = 0.1
 MAX_TOKENS = 4000
 

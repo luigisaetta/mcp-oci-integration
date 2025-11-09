@@ -22,7 +22,13 @@ import oci
 
 from fastmcp import Client as MCPClient
 from pydantic import BaseModel, Field, create_model
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+    AIMessageChunk,
+)
 
 # our code imports
 from oci_jwt_client import OCIJWTClient
@@ -34,6 +40,7 @@ from utils import get_console_logger
 from tracing_utils import setup_tracing, start_span
 
 from config import (
+    STREAMING,
     IAM_BASE_URL,
     ENABLE_JWT_TOKEN,
     DEBUG,
@@ -360,10 +367,131 @@ class AgentWithMCP:
                                 )
                             )
 
+    async def answer_stream(self, question: str, history: list = None):
+        """
+        Async generator version of `answer` that streams tokens as they arrive.
+        Yields dict events:
+          - {"type": "token", "text": "..."}            # streamed model text
+          - {"type": "tool_start", "name": "<tool>"}    # before calling a tool
+          - {"type": "tool_end", "name": "<tool>"}      # after tool result appended
+          - {"type": "final"}                           # when the final answer completes
+        Falls back to non-streaming if the bound model doesn't support streaming.
+        """
+        messages = self._build_messages(
+            history=history,
+            system_prompt=build_system_prompt(),
+            current_user_prompt=question,
+        )
+
+        with start_span("tool_calling_loop_stream", model=self.llm.model_id):
+            while True:
+                # Try streaming first; if not supported, fallback to ainvoke
+                try:
+                    final_chunk: AIMessageChunk | None = None
+                    with start_span("llm_astream", model=self.llm.model_id):
+                        async for chunk in self.model_with_tools.astream(messages):
+                            if isinstance(chunk, AIMessageChunk):
+                                # stream visible text tokens, if any
+                                if chunk.content:
+                                    # some providers send list content; normalize to str
+                                    text_piece = (
+                                        "".join(
+                                            p["text"]
+                                            for p in chunk.content
+                                            if isinstance(p, dict)
+                                            and p.get("type") == "text"
+                                            and "text" in p
+                                        )
+                                        if isinstance(chunk.content, list)
+                                        else str(chunk.content)
+                                    )
+                                    if text_piece:
+                                        yield {"type": "token", "text": text_piece}
+                                # accumulate to reconstruct tool_calls and full message
+                                final_chunk = (
+                                    chunk
+                                    if final_chunk is None
+                                    else (final_chunk + chunk)
+                                )
+                        # if the model produced no chunks at all, treat as empty
+                        ai = (
+                            final_chunk.to_message()
+                            if final_chunk is not None
+                            else AIMessage(content="")
+                        )
+                except Exception:
+                    # Fallback to non-streaming single-shot
+                    with start_span("llm_ainvoke_fallback", model=self.llm.model_id):
+                        ai: AIMessage = await self.model_with_tools.ainvoke(messages)
+                        # emit the whole content as one "token" so downstream callers still get something
+                        if ai.content:
+                            yield {"type": "token", "text": str(ai.content)}
+
+                # If no tool calls, we are done
+                tool_calls = getattr(ai, "tool_calls", None) or []
+                if not tool_calls:
+                    yield {"type": "final"}
+                    return
+
+                # Append the AI message that requested tools to conversation history
+                messages.append(ai)
+
+                # Execute tools (non-streaming by nature), then resume streaming next LLM turn
+                for tc in tool_calls:
+                    name = tc["name"]
+                    args = tc.get("args") or {}
+                    yield {"type": "tool_start", "name": name}
+                    try:
+                        with start_span("tool_call_stream", tool=name):
+                            result = await self._call_tool(name, args)
+                            payload = (
+                                getattr(result, "data", None)
+                                or getattr(result, "content", None)
+                                or str(result)
+                            )
+                            tool_content = (
+                                json.dumps(payload, ensure_ascii=False)
+                                if isinstance(payload, (dict, list))
+                                else str(payload)
+                            )
+                            tm = ToolMessage(
+                                content=tool_content,
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
+                            messages.append(tm)
+                    except Exception as e:
+                        messages.append(
+                            ToolMessage(
+                                content=json.dumps({"error": str(e)}),
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
+                        )
+                    finally:
+                        yield {"type": "tool_end", "name": name}
+
 
 # ---- Example CLI usage ----
 # this code is good for CLI, not Streamlit. See ui_mcp_agent.py
+async def run_stream(question: str, history):
+    agent = await AgentWithMCP.create()
+    async for event in agent.answer_stream(question, history=history):
+        if event["type"] == "token":
+            print(event["text"], end="", flush=True)
+        elif event["type"] == "tool_start":
+            print(f"\n[tool » {event['name']}]")
+        elif event["type"] == "tool_end":
+            print(f"[/tool « {event['name']}]")
+        elif event["type"] == "final":
+            print("\n--- done ---")
+
+
 if __name__ == "__main__":
-    QUESTION = "Tell me about Luigi Saetta. I need his e-mail address also."
+    QUESTION = "Give me the list of the available tools in a table. Add a first column with tool category."
     agent = asyncio.run(AgentWithMCP.create())
-    print(asyncio.run(agent.answer(QUESTION)))
+
+    if not STREAMING:
+        print(asyncio.run(agent.answer(QUESTION, history=[])))
+    else:
+        asyncio.run(run_stream(QUESTION, history=[]))
