@@ -2,7 +2,7 @@
 MCP Server to query data regarding OCI usage and consumption
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 # here is the function that calls Select AI
 from consumption_utils import (
@@ -11,7 +11,11 @@ from consumption_utils import (
     fetch_consumption_by_compartment,
     usage_summary_by_service_for_compartment,
 )
-from oci_utils import list_adbs_in_compartment, get_compartment_id_by_name
+from oci_utils import (
+    list_adbs_in_compartment,
+    get_compartment_id_by_name,
+    list_adbs_in_compartment_list,
+)
 from mcp_utils import create_server, run_server
 from utils import get_console_logger
 
@@ -168,9 +172,32 @@ def list_adb_for_compartment(compartment_name: str) -> Dict[str, Any]:
             raise ValueError(f"Compartment '{compartment_name}' not found")
 
         adbs = list_adbs_in_compartment(compartment_id)
+
         results = {"autonomous_databases": adbs}
     except Exception as e:
         logger.error("Error listing Autonomous Databases: %s", e)
+        results = {"error": str(e)}
+
+    return results
+
+
+@mcp.tool
+def list_adb_for_compartments_list(compartments_list: List[str]) -> Dict[str, Any]:
+    """
+    Return the list of Autonomous Databases for a list of compartments.
+
+    Args:
+        compartments_lists (list): List of the names of the compartments
+
+    Return:
+        dicts: A structured dictionary containing Autonomous Database details for each compartment.
+            Each entry corresponds to a compartment.
+
+    """
+    try:
+        results = list_adbs_in_compartment_list(compartments_list)
+    except Exception as e:
+        logger.error("Error listing Autonomous Databases for compartments: %s", e)
         results = {"error": str(e)}
 
     return results

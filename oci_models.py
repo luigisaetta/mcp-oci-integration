@@ -35,6 +35,7 @@ from langchain_oracledb.vectorstores import OracleVS
 from custom_rest_embeddings import CustomRESTEmbeddings
 from utils import get_console_logger
 from config import (
+    STREAMING,
     AUTH,
     SERVICE_ENDPOINT,
     # used only for defaults
@@ -80,7 +81,7 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
         service_endpoint=SERVICE_ENDPOINT,
         compartment_id=COMPARTMENT_ID,
         # changed to solve OpenAI/Grok4 issue
-        is_stream=False,
+        is_stream=STREAMING,
         model_kwargs=_model_kwargs,
     )
     return llm

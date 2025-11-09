@@ -298,6 +298,9 @@ class AgentWithMCP:
         )
 
         with start_span("tool_calling_loop", model=self.llm.model_id):
+            #
+            # This is the tool-calling loop
+            #
             while True:
                 # added to integrate with APM tracing
                 with start_span("llm_invoke", model=self.llm.model_id):

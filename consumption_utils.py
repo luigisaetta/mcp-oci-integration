@@ -25,13 +25,13 @@ def _make_client(
     except Exception:
         cfg = None
     if cfg is not None:
-        return UsageapiClient(cfg), cfg
+        return UsageapiClient(cfg, timeout=60.0), cfg
 
     # this is to support resource principals
     signer = oci.auth.signers.get_resource_principals_signer()
     cfg = {"region": signer.region, "tenancy": signer.tenancy_id}
 
-    return UsageapiClient(cfg, signer=signer), cfg
+    return UsageapiClient(cfg, signer=signer, timeout=60.0), cfg
 
 
 def _to_utc_midnight(d: date | datetime | str) -> str:
@@ -601,7 +601,7 @@ def usage_summary_by_service_for_compartment(
     qt = query_type.upper()
     if qt not in ("COST", "USAGE"):
         raise ValueError("query_type must be 'COST' or 'USAGE'")
-    if not (1 <= int(max_compartment_depth) <= 7):
+    if not 1 <= int(max_compartment_depth) <= 7:
         raise ValueError("max_compartment_depth must be between 1 and 7")
 
     # Time window (end exclusive as required by the Usage API)

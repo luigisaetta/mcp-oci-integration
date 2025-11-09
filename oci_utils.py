@@ -1,5 +1,6 @@
 """
-OCI Utils: A collection of utility functions for working with Oracle Cloud Infrastructure (OCI).
+OCI Utils:
+    A collection of utility functions for working with Oracle Cloud Infrastructure (OCI).
 """
 
 from typing import List
@@ -38,12 +39,30 @@ def list_adbs_in_compartment(compartment_id: str):
     return adbs
 
 
+def list_adbs_in_compartment_list(compartment_list: list):
+    """
+    list all ADBS in a list of compartments.
+    Compartments are identified by name
+    """
+    return_list = []
+
+    for comp_name in compartment_list:
+        comp_id = get_compartment_id_by_name(comp_name)
+
+        if comp_id is not None:
+            list_adbs = list_adbs_in_compartment(comp_id)
+
+            result = {"compartment": comp_name, "autonomous_databases": list_adbs}
+            return_list.append(result)
+
+    return {"results": return_list}
+
+
 def _adb_row(adb) -> dict:
     """
     Extract the data regarding adb into a dictionary.
     """
     return {
-        "ocid": adb.id,
         "display_name": getattr(adb, "display_name", ""),
         "db_name": getattr(adb, "db_name", ""),
         "lifecycle_state": getattr(adb, "lifecycle_state", ""),

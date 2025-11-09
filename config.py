@@ -26,6 +26,8 @@ Warnings:
 
 DEBUG = False
 
+STREAMING = True
+
 # type of OCI auth
 AUTH = "API_KEY"
 
