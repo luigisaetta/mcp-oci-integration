@@ -9,7 +9,7 @@ import streamlit as st
 # added pdf upload
 from pypdf import PdfReader
 
-from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN, STREAMING
+from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 # this one contains the backend and the test code only for console

@@ -9,6 +9,8 @@ MCP Aggregator (HTTP-only, FastMCP v2)
 - No persistent client sessions: each call opens/closes a FastMCP Client
   (robust across event loops).
 - Toggleable structured logging via the DEBUG constant.
+
+- added upport for disabled MCP (17/11/202)
 """
 
 import asyncio
@@ -170,6 +172,16 @@ class Aggregator:
         for backend in self.backends_cfg:
             backend_name = backend["name"]
             backend_url = backend["url"]
+
+            # >>> (17/11/2025): skip explicitly disabled backends
+            if backend.get("disabled", False):
+                log_json(
+                    event="backend.disabled_skipped",
+                    backend=backend_name,
+                    url=backend_url,
+                )
+                continue
+            # <<< END NEW
 
             # One-time discovery with a short-lived client
             async with Client(

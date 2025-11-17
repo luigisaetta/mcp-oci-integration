@@ -1,8 +1,10 @@
+# this is the config file for the MCP Aggregator
+
 # timeout on each http call to backend
 timeout_seconds: 60
 
 # to manage jwt tokens
-enable_jwt_tokens: true
+enable_jwt_tokens: false
 iam_base_url: "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
 issuer: "https://identity.oraclecloud.com/"
 audience: ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
@@ -16,9 +18,23 @@ use_namespace: false
 
 # backends to use
 backends:
-  - name: selectai_db
+  - name: db_selectai
     url: "http://localhost:8000/mcp"
+  # semantic search on Oracle Vector Store
   - name: search
     url: "http://localhost:9000/mcp"
   - name: internet_search
     url: "http://localhost:8500/mcp"
+  # OCI consumption data
+  - name : oci_consumption
+    url: "http://localhost:9500/mcp"
+  # Employee data
+  - name: hr_employee
+    url: "http://localhost:8600/mcp"
+  # for garmin data analysis
+  - name: sport_analysis
+    url: "http://localhost:1234/mcp"
+    disabled: true 
+  # OML Predictions for F1 data
+  # - name: oml_predictions
+  #  url: "http://localhost:8800/mcp"

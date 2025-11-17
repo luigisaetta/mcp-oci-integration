@@ -47,7 +47,8 @@ NVIDIA_EMBED_MODEL_URL = ""
 # LLM
 # this is the default model
 LLM_MODEL_ID = "xai.grok-4"
-TEMPERATURE = 0.1
+TEMPERATURE = 0.0
+TOP_P = 1
 MAX_TOKENS = 4000
 
 # OCI general
@@ -83,7 +84,7 @@ DEFAULT_COLLECTION = "BOOKS"
 
 # history management (put -1 if you want to disable trimming)
 # consider that we have pair (human, ai) so use an even (ex: 6) value
-MAX_MSGS_IN_HISTORY = 8
+MAX_MSGS_IN_HISTORY = 20
 
 # reranking enabled or disabled from UI
 
