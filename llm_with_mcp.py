@@ -787,20 +787,34 @@ if __name__ == "__main__":
     # A single, multi-line prompt (triple quotes avoids accidental string concatenation issues)
     QUESTION = """
 Give me top 20 compartments for usage (amount) in november 2025. Put all the data in a table. 
+
 Consider the current usage and then do a linear forecast over all the month. 
 In the table put the current usage and the forecasted. 
-In addition to the table give the details regarding the computation for the forecast. 
+
 In addition, before deciding the top 20, do some aggregation: 
 * aggregate the costs for mgueury and devops and put the total under the name mgueury 
 * aggregate the costs for omasalem and ADBAGENT and put the total under omasalem
 * aggregate the costs for matwolf and ai-test-oke and put the result under the name matwolf
 * aggregate the costs for lsaetta and lsaetta-apm and put the result under the name lsaetta. 
 
-Add a final row to the table with the overall total
+Add a final row to the table with the overall total. Return only the table with an heading, 
+no additional comments or explanation.
 """
     # Optional: start with an empty history; replace with your stored chat history if needed
     HISTORY = []
 
     result = asyncio.run(run(QUESTION, history=HISTORY))
 
+    # Print to console
     print(result)
+
+    # Save also to a markdown file
+    DIR = "reports"
+    today = datetime.now().strftime("%Y%m%d")
+
+    FILENAME = f"./{DIR}/finops_usage_report_{today}.md"
+
+    with open(FILENAME, "w", encoding="utf-8") as f:
+        f.write(str(result))
+
+    print(f"\nMarkdown table saved to {FILENAME}")

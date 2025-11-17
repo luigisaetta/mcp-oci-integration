@@ -123,3 +123,7 @@ OCI_APM_TRACES_URL = "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.
 
 # UI
 UI_TITLE = "🛠️ AI Assistant powered by MCP"
+
+# Agent API
+AGENT_API_HOST = "0.0.0.0"
+AGENT_API_PORT = 8001
