@@ -4,7 +4,7 @@ Agenda MCP server implementation.
 
 from typing import List, Dict, Any
 from mcp_utils import create_server, run_server
-from agenda_utils import add_event, get_events
+from agenda_utils import add_event, get_events, delete_event as delete_event_util
 
 mcp = create_server("Agenda MCP")
 
@@ -34,6 +34,7 @@ def list_events(start_date: str, end_date: str) -> Dict[str, Any]:
         {
           "events": [
             {
+              "id": int,
               "title": str,
               "start": str,  # ISO 8601
               "end": str     # ISO 8601
@@ -41,6 +42,10 @@ def list_events(start_date: str, end_date: str) -> Dict[str, Any]:
             ...
           ]
         }
+
+    Notes
+    -----
+    - Use the 'id' field from each event when you need to delete it.
     """
     events = get_events(start_date, end_date)
 
@@ -73,12 +78,14 @@ def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
         JSON object describing the created event and any conflicts:
 
         {
+          "id": int,
           "title": str,
           "start": str,         # ISO 8601
           "end": str,           # ISO 8601
           "has_conflict": bool,
           "conflicts": [
             {
+              "id": int,
               "title": str,
               "start": str,     # ISO 8601
               "end": str        # ISO 8601
@@ -91,9 +98,43 @@ def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
     -----
     - The event is always created, even if there are conflicts.
     - If dates are invalid or end_date <= start_date, a ValueError is raised.
+    - The returned 'id' is the unique identifier to use for deletion.
     """
     return add_event(title, start_date, end_date)
 
+@mcp.tool()
+def delete_event(event_id: int) -> Dict[str, Any]:
+    """
+    Delete a single event by its unique ID.
+
+    Parameters
+    ----------
+    event_id : int
+        The unique identifier of the event, as returned by create_event or
+        list_events (field 'id').
+
+    Returns
+    -------
+    dict
+        JSON-safe result object:
+
+        {
+          "deleted": bool,
+          "event": {
+              "id": int,
+              "title": str,
+              "start": str,  # ISO 8601
+              "end": str     # ISO 8601
+          } | None,
+          "message": str
+        }
+
+    Notes
+    -----
+    - If no event with the given ID exists, 'deleted' will be False and
+      'event' will be null.
+    """
+    return delete_event_util(event_id)
 
 if __name__ == "__main__":
     run_server(mcp)
