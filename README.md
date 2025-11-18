@@ -31,7 +31,7 @@ In today’s landscape of agentic AI, MCP is critical because it allows models t
 The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/welcome) library.
 
 **Examples**:
-* in [Minimal MCP Server](./minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect them using [JWT](https://www.jwt.io/introduction#what-is-json-web-token).
+* in [Minimal MCP Server](./mcp_servers/minimal_mcp_server.py) you'll find a **good, minimal example** of a server exposing two tools, with the option to protect them using [JWT](https://www.jwt.io/introduction#what-is-json-web-token).
 
 If you want to start with **something simpler**, have a look at [how to start developing MCP](./docs/how_to_start_mcp.md). It is simpler, with no support for JWT tokens.
 
