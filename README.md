@@ -51,7 +51,7 @@ To use it, you need only:
 * To load the documents in the Oracle DB
 * To put the right configuration, to connect to DB, in config_private.py.
 
-The code is available [here](./mcp_semantic_search_with_iam.py). 
+The code is available [here](./mcp_servers/mcp_semantic_search_with_iam.py). 
 
 Access to Oracle 23AI Vector Search is through the **new** [langchain-oci integration library](https://github.com/oracle/langchain-oracle)
 
@@ -72,11 +72,11 @@ Using **OCI services** there are several things you can do to get the right leve
 More details in a dedicated page.
 
 ## Integrate MCP Semantic Search with ChatGPT
-If you deploy the [MCP Semantic Search](./mcp_semantic_search_with_iam.py) server you can test the integration with **ChatGPT** in **Developer Mode**. It provides a **search** tool, compliant with **OpenAI** specs. 
+If you deploy the [MCP Semantic Search](./mcp_servers/mcp_semantic_search_with_iam.py) server you can test the integration with **ChatGPT** in **Developer Mode**. It provides a **search** tool, compliant with **OpenAI** specs. 
 
 Soon, we'll add a server fully compliant with **OpenAI** specifications, that can be integrated in **Deep Research**. The server must implement two methods (**search** and **fetch**) with a different behaviour, following srictly OpenAI specs.
 
-An initial implementation is available [here](./mcp_deep_research_with_iam.py)
+An initial implementation is available [here](./mcp_servers/mcp_deep_research_with_iam.py)
 
 Details available [here](./docs/integrate_chatgpt.md)
 
@@ -84,14 +84,14 @@ Details available [here](./docs/integrate_chatgpt.md)
 Another option is to use an MCP server to be able to integrate OCI **SelectAI** in ChatGPT or other assistants supporting MCP.
 In this way you have an option to do full **Text2SQL** search, over your database schema. Then, the AI assistant can process your retrieved data.
 
-An example is [here](./mcp_selectai.py)
+An example is [here](./mcp_servers/mcp_selectai.py)
 
 For **Select AI** configuration, see [here](./docs/configure_select_ai.md)
 
 ## OCI Consumption Analysis
 Another use-case demonstrated in this set of demos is leveraging an AI Assistant powered by MCP servers to analyze the **OCI tenant consumption** in a natural and interactive way.
 
-Using the [MCP Consumption Server](./mcp_consumption.py), you can explore various dimensions of consumption and ask questions such as:
+Using the [MCP Consumption Server](./mcp_servers/mcp_consumption.py), you can explore various dimensions of consumption and ask questions such as:
 * List the top 10 services by total amount for a given period (start_date, end_date).
 * List the top 10 compartments by total consumption.
 * For a specific service (or list of services), show the consumption breakdown across the top 5 compartments.
