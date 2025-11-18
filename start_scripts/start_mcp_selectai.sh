@@ -1,3 +1,3 @@
-python ../mcp_selectai.py --port 8000
+python ../mcp_servers/mcp_selectai.py --port 8000
 
 

@@ -1,2 +1,2 @@
-python ../mcp_consumption.py --port 9500
+python ../mcp_servers/mcp_consumption.py --port 9500
 

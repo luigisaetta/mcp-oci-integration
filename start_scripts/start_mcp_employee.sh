@@ -1,3 +1,3 @@
-python ../mcp_employee.py --port 8600
+python ../mcp_servers/mcp_employee.py --port 8600
 
 
