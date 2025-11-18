@@ -1,3 +1,6 @@
-python ../mcp_servers/mcp_employee.py --port 8600
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
+
+python "$REPO_ROOT/mcp_servers/mcp_employee.py" --port 8600
 
 
