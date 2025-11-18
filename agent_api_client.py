@@ -2,8 +2,8 @@
 Agent API simple client
 """
 
-import requests
 from datetime import datetime
+import requests
 
 # adjust if needed
 API_URL = "http://130.61.38.113:8001/ask"
