@@ -1,7 +1,29 @@
-# MCP servers
-In this directory there is the code for a set of MCP servers.
+# MCP Servers
 
-## Servers' list.
-* [mcp_agenda](./mcp_agenda.py): help manage your agenda (list, add, delete events)
-* [mcp_consumption](./mcp_consumption.py): analyze service and compartments'c consumption in your OCI tenant
-* [mcp_employee](mcp_employee.py): provides the list of employees of a fictional company, with some data + the number of vacations taken
+This directory contains the implementation of several MCP servers.  
+Each server exposes a focused set of tools and handles a specific function. They are designed to be modular, easy to test, and runnable either standalone or via an MCP Aggregator.
+
+## Available Servers
+
+- **[`mcp_agenda.py`](./mcp_agenda.py)**  
+  Manage simple personal-agenda data: list events, add new ones, and delete existing items.
+
+- **[`mcp_consumption.py`](./mcp_consumption.py)**  
+  Query and analyze OCI consumption metrics by service and by compartment.
+
+- **[`mcp_employee.py`](./mcp_employee.py)**  
+  Return employee records for a fictional company, including basic metadata and vacation-day usage.
+
+- **[`mcp_github.py`](./mcp_github.py)**  
+  Read the structure and file contents of a GitHub repository using a personal access token.
+
+- **[`mcp_internet_search.py`](./mcp_internet_search.py)**  
+  Perform Internet searches and return the top relevant results.
+
+- **[`mcp_selectai.py`](./mcp_selectai.py)**  
+  Provide Text-to-SQL capabilities using Oracle Autonomous Database SelectAI.
+
+- **[`mcp_semantic_search_with_iam.py`](./mcp_semantic_search_with_iam.py)**  
+  Execute semantic search over Oracle Database 23c/26AI using OCI GenAI embeddings and IAM-secured access.
+
+
