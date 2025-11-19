@@ -3,12 +3,13 @@ Agenda utils
 Provides in-memory storage and retrieval of calendar events.
 """
 
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 
 # Internal in-memory event store
 # Each event is stored as:
-#   {"id": int, "title": str, "start": datetime, "end": datetime}
+#   {"id": int, "title": str, "start": datetime, "end": datetime, "notes": str}
 EVENTS: List[Dict[str, Any]] = []
 
 # Simple incremental ID generator for events
@@ -57,10 +58,16 @@ def _serialize_event(ev: Dict[str, Any]) -> Dict[str, Any]:
         "title": ev["title"],
         "start": ev["start"].isoformat(),
         "end": ev["end"].isoformat(),
+        "notes": ev.get("notes", ""),
     }
 
 
-def add_event(title: str, start: str, end: str) -> Dict[str, Any]:
+def add_event(
+    title: str,
+    start: str,
+    end: str,
+    notes: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Add a new event to the in-memory list.
 
@@ -76,6 +83,8 @@ def add_event(title: str, start: str, end: str) -> Dict[str, Any]:
     end : str
         End datetime (string). Same formats as `start`.
         Must be strictly after `start`.
+    notes: str, optional
+        Additional notes for the event.
 
     Returns
     -------
@@ -87,13 +96,15 @@ def add_event(title: str, start: str, end: str) -> Dict[str, Any]:
             "title": str,
             "start": str,         # ISO 8601
             "end": str,           # ISO 8601
+            "notes": str,
             "has_conflict": bool,
             "conflicts": [
                 {
                     "id": int,
                     "title": str,
                     "start": str, # ISO 8601
-                    "end": str    # ISO 8601
+                    "end": str,    # ISO 8601
+                    "notes": str
                 },
                 ...
             ]
@@ -127,6 +138,7 @@ def add_event(title: str, start: str, end: str) -> Dict[str, Any]:
         "title": title,
         "start": start_dt,
         "end": end_dt,
+        "notes": notes or "",
     }
     EVENTS.append(new_event)
 
@@ -167,7 +179,8 @@ def get_events(start: str, end: str) -> List[Dict[str, Any]]:
                 "id": int,
                 "title": str,
                 "start": str,   # ISO 8601
-                "end": str      # ISO 8601
+                "end": str,      # ISO 8601
+                "notes": str
             },
             ...
         ]
@@ -230,3 +243,65 @@ def delete_event(event_id: int) -> Dict[str, Any]:
         "event": _serialize_event(ev),
         "message": f"Event with id {event_id} deleted.",
     }
+
+
+def init_random_events_for_current_week() -> List[Dict[str, Any]]:
+    """
+    Initialize the EVENTS list with 10 random events for the current ISO week.
+
+    Returns
+    -------
+    list of dict
+        JSON-safe representation of the created events (including ids).
+    """
+    # Event titles pool
+    TITLES = [
+        "Team Meeting",
+        "Client Call",
+        "Lunch Break",
+        "Planning Session",
+        "Review",
+        "Deep Work",
+        "Quick Sync",
+        "Project Demo",
+        "1:1 Meeting",
+    ]
+
+    # Durations in minutes
+    DURATIONS = [30, 45, 60, 90]
+
+    # Determine current week's Monday
+    today = datetime.now()
+    monday = today - timedelta(days=today.weekday())
+    monday = monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    created_events: List[Dict[str, Any]] = []
+
+    for _ in range(10):
+        # Random day offset (0 = Monday ... 6 = Sunday)
+        day_offset = random.randint(0, 6)
+        base_day = monday + timedelta(days=day_offset)
+
+        # Random start time between 08:00 and 18:00
+        start_hour = random.randint(8, 17)  # end at 17:xx latest
+        start_minute = random.choice([0, 15, 30, 45])
+
+        start_dt = base_day.replace(
+            hour=start_hour,
+            minute=start_minute,
+            second=0,
+            microsecond=0,
+        )
+
+        duration = random.choice(DURATIONS)
+        end_dt = start_dt + timedelta(minutes=duration)
+
+        # Build start/end strings in ISO 8601
+        start_str = start_dt.isoformat()
+        end_str = end_dt.isoformat()
+
+        # Create event using add_event() so conflict detection works
+        ev = add_event(title=random.choice(TITLES), start=start_str, end=end_str)
+        created_events.append(ev)
+
+    return created_events

@@ -42,6 +42,7 @@ from utils import get_console_logger
 from tracing_utils import setup_tracing, start_span
 
 from config import (
+    USERNAME,
     IAM_BASE_URL,
     ENABLE_JWT_TOKEN,
     DEBUG,
@@ -129,7 +130,9 @@ def build_system_prompt() -> str:
     now = datetime.now(ZoneInfo("Europe/Rome"))
     today_iso = now.strftime("%Y-%m-%d")
     today_long = now.strftime("%A, %d %B %Y, %H:%M:%S %Z")
-    return SYSTEM_PROMPT_TEMPLATE.format(today_long=today_long, today_iso=today_iso)
+    return SYSTEM_PROMPT_TEMPLATE.format(
+        username=USERNAME, today_long=today_long, today_iso=today_iso
+    )
 
 
 class AgentWithMCP:

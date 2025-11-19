@@ -1,10 +1,13 @@
 """
 Agenda MCP server implementation.
+
+Implements tools to create, list, and delete agenda events.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from mcp_utils import create_server, run_server
 from agenda_utils import add_event, get_events, delete_event as delete_event_util
+from agenda_utils import init_random_events_for_current_week
 
 mcp = create_server("Agenda MCP")
 
@@ -37,7 +40,8 @@ def list_events(start_date: str, end_date: str) -> Dict[str, Any]:
               "id": int,
               "title": str,
               "start": str,  # ISO 8601
-              "end": str     # ISO 8601
+              "end": str,     # ISO 8601
+              "notes": str
             },
             ...
           ]
@@ -53,7 +57,12 @@ def list_events(start_date: str, end_date: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
+def create_event(
+    title: str,
+    start_date: str,
+    end_date: str,
+    notes: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Create a new event in the agenda and report any scheduling conflicts.
 
@@ -71,6 +80,8 @@ def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
         End of the event.
         Must be strictly after start_date.
         Same accepted formats as start_date.
+    notes : str, optional
+        Optional longer description or notes for the event.
 
     Returns
     -------
@@ -82,13 +93,15 @@ def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
           "title": str,
           "start": str,         # ISO 8601
           "end": str,           # ISO 8601
+          "notes": str | None,
           "has_conflict": bool,
           "conflicts": [
             {
               "id": int,
               "title": str,
               "start": str,     # ISO 8601
-              "end": str        # ISO 8601
+              "end": str,        # ISO 8601
+              "notes": str | None
             },
             ...
           ]
@@ -100,7 +113,8 @@ def create_event(title: str, start_date: str, end_date: str) -> Dict[str, Any]:
     - If dates are invalid or end_date <= start_date, a ValueError is raised.
     - The returned 'id' is the unique identifier to use for deletion.
     """
-    return add_event(title, start_date, end_date)
+    return add_event(title, start_date, end_date, notes=notes)
+
 
 @mcp.tool()
 def delete_event(event_id: int) -> Dict[str, Any]:
@@ -124,7 +138,8 @@ def delete_event(event_id: int) -> Dict[str, Any]:
               "id": int,
               "title": str,
               "start": str,  # ISO 8601
-              "end": str     # ISO 8601
+              "end": str,     # ISO 8601
+              "notes": str | None
           } | None,
           "message": str
         }
@@ -136,5 +151,9 @@ def delete_event(event_id: int) -> Dict[str, Any]:
     """
     return delete_event_util(event_id)
 
+
 if __name__ == "__main__":
+    # initialise the agenda with some random events for the current week
+    init_random_events_for_current_week()
+
     run_server(mcp)

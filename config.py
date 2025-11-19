@@ -25,8 +25,8 @@ Warnings:
 """
 
 DEBUG = False
-
-STREAMING = True
+STREAMING = False
+USERNAME = "Luigi"
 
 # type of OCI auth
 AUTH = "API_KEY"
@@ -127,3 +127,6 @@ UI_TITLE = "🛠️ AI Assistant powered by MCP"
 # Agent API
 AGENT_API_HOST = "0.0.0.0"
 AGENT_API_PORT = 8001
+
+# Github integration
+GITHUB_DEFAULT_REPO = "mcp-oci-integration"
