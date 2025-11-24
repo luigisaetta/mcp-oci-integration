@@ -61,11 +61,10 @@ if REGION == "us-chicago-1":
     MODEL_LIST = [
         "xai.grok-4",
         "xai.grok-4-fast-reasoning",
-        "xai.grok-3",
+        "meta.llama-4-maverick-17b-128e-instruct-fp8",
         "openai.gpt-4.1",
         "openai.gpt-4o",
         "openai.gpt-5",
-        "meta.llama-3.3-70b-instruct",
         "cohere.command-a-03-2025",
     ]
 else:

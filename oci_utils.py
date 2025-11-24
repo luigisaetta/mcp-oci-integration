@@ -3,10 +3,12 @@ OCI Utils:
     A collection of utility functions for working with Oracle Cloud Infrastructure (OCI).
 """
 
-from typing import List
+from typing import List, Dict, Any
 import oci
 from oci import retry as oci_retry
 from oci.database import DatabaseClient
+
+TAG_KEY = "ref-comp"
 
 
 def build_retry_strategy():
@@ -14,6 +16,15 @@ def build_retry_strategy():
     Implement a retry strategy for OCI operations.
     """
     return oci_retry.DEFAULT_RETRY_STRATEGY
+
+
+def get_identity_client() -> tuple[oci.identity.IdentityClient, Dict[str, Any]]:
+    """
+    Create an IdentityClient from the local OCI config file.
+    """
+    config = oci.config.from_file()
+    client = oci.identity.IdentityClient(config)
+    return client, config
 
 
 def list_adbs_in_compartment(compartment_id: str):
@@ -124,9 +135,8 @@ def list_all_compartments() -> List[oci.identity.models.Compartment]:
 
     retry = build_retry_strategy()
 
-    config = oci.config.from_file()
+    identity_client, config = get_identity_client()
     tenancy_id = config["tenancy"]
-    identity_client = oci.identity.IdentityClient(config)
 
     # include root "tenancy" as a pseudo-compartment
     tenancy_details = identity_client.get_tenancy(tenancy_id, retry_strategy=retry).data
@@ -152,3 +162,44 @@ def list_all_compartments() -> List[oci.identity.models.Compartment]:
     compartments = [c for c in compartments if c.lifecycle_state == "ACTIVE"]
     # Add root at the beginning
     return [root] + compartments
+
+
+def list_compartments_with_ref_comp(ref_comp_value: str) -> List[Dict[str, str]]:
+    """
+    Returns a list of compartments with freeform tag 'ref-comp' == ref_comp_value.
+
+    Useful to aggregate costs for compartments tagged with a specific reference
+    compartment name.
+
+    Each item is:
+    {
+        "compartment_id": ...,
+        "compartment_name": ...,
+    }
+    """
+    identity_client, config = get_identity_client()
+    tenancy_id = config["tenancy"]
+
+    # Get all ACTIVE compartments in the entire tree
+    response = oci.pagination.list_call_get_all_results(
+        identity_client.list_compartments,
+        tenancy_id,
+        access_level="ANY",
+        compartment_id_in_subtree=True,
+        lifecycle_state="ACTIVE",
+    )
+
+    results: List[Dict[str, str]] = []
+
+    for comp in response.data:
+        # we're looking at freeform tags
+        freeform_tags = comp.freeform_tags or {}
+        value = freeform_tags.get(TAG_KEY)
+
+        # found the tag with the desired value
+        if value == ref_comp_value:
+            results.append({"compartment_id": comp.id, "compartment_name": comp.name})
+
+    # result list with items in the form:
+    # {"compartment_id": ..., "compartment_name": ...}
+    return results

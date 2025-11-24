@@ -28,6 +28,9 @@ def _get_github_token(explicit_token: Optional[str] = None) -> str:
 
 
 def get_github_client(token: Optional[str] = None) -> Github:
+    """
+    Get a PyGithub Github client instance.
+    """
     pat = _get_github_token(token)
     return Github(pat)
 
@@ -64,6 +67,9 @@ def get_repo(
     repo_full_name: Optional[str] = None,
     token: Optional[str] = None,
 ) -> Repository:
+    """
+    Get a PyGithub Repository instance.
+    """
     full_name = _normalize_repo_full_name(repo_full_name)
 
     gh = get_github_client(token)
@@ -169,3 +175,90 @@ def get_file_content(
         "encoding": encoding,
         "content": text,
     }
+
+
+def list_commits(
+    repo_full_name: Optional[str] = None,
+    path: Optional[str] = None,
+    ref: Optional[str] = None,
+    token: Optional[str] = None,
+    max_commits: int = 50,
+) -> List[Dict[str, Any]]:
+    """
+    List commits in a GitHub repository (optionally filtered by path and ref).
+
+    Parameters
+    ----------
+    repo_full_name : str | None
+        "owner/repo". If None, uses GITHUB_DEFAULT_REPO (+ GITHUB_USERNAME if needed).
+    path : str | None
+        If provided, only commits touching this file/directory are returned.
+        Example: "mcp_servers/mcp_github.py".
+    ref : str | None
+        Branch name or commit SHA to start from.
+        - None -> default branch.
+        - "main" -> commits on main.
+        - a SHA -> history reachable from that commit.
+    token : str | None
+        Personal access token. If None, uses GITHUB_TOKEN.
+    max_commits : int
+        Maximum number of commits to return.
+
+    Returns
+    -------
+    List[Dict[str, Any]]
+        Each item is a JSON-friendly dict with basic commit info.
+    """
+    repo = get_repo(repo_full_name, token)
+
+    # PyGithub: repo.get_commits(path=..., sha=...)
+    kwargs: Dict[str, Any] = {}
+    if path:
+        # Normalize path similar to other functions
+        kwargs["path"] = path.strip("/")
+    if ref:
+        kwargs["sha"] = ref
+
+    try:
+        paginated = repo.get_commits(**kwargs)
+    except Exception as exc:  # noqa: BLE001
+        raise GithubConfigError(
+            f"Error getting commits for repo '{repo.full_name}' "
+            f"(path={path!r}, ref={ref!r}): {repr(exc)}"
+        ) from exc
+
+    commits: List[Dict[str, Any]] = []
+    count = 0
+    for c in paginated:  # type: ignore[assignment]
+        if count >= max_commits:
+            break
+        # `c` is a github.Commit.Commit
+        commit_obj = c.commit  # "raw" commit data
+        author = commit_obj.author
+        committer = commit_obj.committer
+
+        commits.append(
+            {
+                "sha": c.sha,
+                "message": commit_obj.message,
+                "author_name": getattr(author, "name", None),
+                "author_email": getattr(author, "email", None),
+                "author_date": (
+                    getattr(author, "date", None).isoformat()
+                    if getattr(author, "date", None)
+                    else None
+                ),
+                "committer_name": getattr(committer, "name", None),
+                "committer_email": getattr(committer, "email", None),
+                "committer_date": (
+                    getattr(committer, "date", None).isoformat()
+                    if getattr(committer, "date", None)
+                    else None
+                ),
+                "html_url": getattr(c, "html_url", None),
+                "parents": [p.sha for p in getattr(c, "parents", [])],
+            }
+        )
+        count += 1
+
+    return commits

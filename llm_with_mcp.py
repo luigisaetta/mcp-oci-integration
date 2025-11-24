@@ -64,7 +64,7 @@ logger = get_console_logger()
 
 # ---- Config ----
 # trim the history to max MAX_HISTORY msgs
-MAX_HISTORY = 10
+MAX_HISTORY = 16
 
 MCP_URL = MCP_SERVERS_CONFIG["default"]["url"]
 TIMEOUT = 60
