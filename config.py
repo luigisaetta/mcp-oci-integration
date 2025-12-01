@@ -98,7 +98,7 @@ HOST = "0.0.0.0"
 PORT = 9000
 
 # with this we can toggle JWT token auth
-ENABLE_JWT_TOKEN = False
+ENABLE_JWT_TOKEN = True
 
 # can be OCI_IAM or IBM_CONTEXT_FORGE
 # JWT_TOKEN_PROVIDER = "IBM_CONTEXT_FORGE"

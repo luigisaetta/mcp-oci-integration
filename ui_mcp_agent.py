@@ -25,10 +25,12 @@ MAX_CHARS = 30000
 # seconds
 TIMEOUT = 60
 
+
 def get_username():
     headers = st.context.headers
     return headers.get("X-Auth-User")
-    
+
+
 # NEW: PDF -> text (no OCR)
 def _extract_text_from_pdf(uploaded_file) -> str:
     """
@@ -137,6 +139,7 @@ if "last_pdf_text" not in st.session_state:
 # read the username (if present)
 USER = get_username()
 logger.info("Authenticated user: %s", USER)
+
 
 def reset_conversation():
     """Reset the chat history."""

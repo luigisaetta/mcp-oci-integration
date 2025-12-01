@@ -211,6 +211,7 @@ class AgentWithMCP:
         Execute a single MCP tool call.
         """
         jwt = self.jwt_supplier()
+        
         logger.info("Calling MCP tool '%s' with args %s", name, args)
 
         async with MCPClient(self.mcp_url, auth=jwt, timeout=self.timeout) as c:
@@ -595,7 +596,7 @@ async def run(question: str, history):
 
 
 #
-# Added to debug roubles with streaming
+# Added to debug troubles with streaming
 #
 async def debug_compare_nonstream_vs_stream(question: str, history: list | None = None):
     """

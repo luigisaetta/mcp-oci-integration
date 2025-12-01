@@ -9,6 +9,10 @@ from oci.usage_api import UsageapiClient
 from oci.identity import IdentityClient
 from oci.usage_api.models import RequestSummarizedUsagesDetails, Filter, Dimension
 
+from utils import get_console_logger
+
+logger = get_console_logger()
+
 MAX_COMPARTMENT_DEPTH = 7
 
 
@@ -28,6 +32,8 @@ def _make_client(
         return UsageapiClient(cfg, timeout=60.0), cfg
 
     # this is to support resource principals
+    logger.info("Using RESOURCE_PRINCIPAL...")
+
     signer = oci.auth.signers.get_resource_principals_signer()
     cfg = {"region": signer.region, "tenancy": signer.tenancy_id}
 
