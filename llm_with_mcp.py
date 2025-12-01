@@ -306,6 +306,7 @@ class AgentWithMCP:
 
             # to store the list of tools we're calling
             tool_names = []
+            tool_params = []
 
             while True:
                 # added to integrate with APM tracing
@@ -319,7 +320,10 @@ class AgentWithMCP:
                         # Final answer !!!
 
                         # changed to dict to add metadata
-                        metadata = {"tool_names": tool_names}
+                        metadata = {
+                            "tool_names": tool_names,
+                            "tool_params": tool_params,
+                        }
                         return {"answer": ai.content, "metadata": metadata}
 
                     # keep the AI msg that requested tools
@@ -353,6 +357,7 @@ class AgentWithMCP:
                                 )
                                 messages.append(tm)
                                 tool_names.append(name)
+                                tool_params.append({"tool": name, "args": args})
 
                         except Exception as e:
                             messages.append(
