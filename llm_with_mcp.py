@@ -10,6 +10,7 @@ As for now, it is working fine with: Cohere, GPT and grok,
 some problems with llama 3.3
 
 27/10/2024: added APM tracing support
+01/12/2025: changed the agent to return a dict with answer and metadata
 """
 
 import json
@@ -72,7 +73,7 @@ SCOPE = "urn:opc:idm:__myscopes__"
 SYSTEM_PROMPT_TEMPLATE = AGENT_SYSTEM_PROMPT_TEMPLATE
 
 
-def default_jwt_supplier() -> str:
+def default_jwt_supplier() -> Optional[str]:
     """
     Get a valid JWT token to make the call to MCP server
     """
@@ -146,7 +147,7 @@ class AgentWithMCP:
     def __init__(
         self,
         mcp_url: str,
-        jwt_supplier: Callable[[], str],
+        jwt_supplier: Callable[[], Optional[str]],
         timeout: int,
         llm,
     ):
@@ -214,7 +215,7 @@ class AgentWithMCP:
     async def create(
         cls,
         mcp_url: str = MCP_URL,
-        jwt_supplier: Callable[[], str] = default_jwt_supplier,
+        jwt_supplier: Callable[[], Optional[str]] = default_jwt_supplier,
         timeout: int = TIMEOUT,
         model_id: str = "xai.grok-4",
     ):
@@ -230,8 +231,9 @@ class AgentWithMCP:
         tools = await self._list_tools()
         if not tools:
             logger.warning("No tools discovered at %s", mcp_url)
-        self._tools_cache = tools
+            tools = []
 
+        self._tools_cache = tools
         schemas = [self._tool_to_schema(t) for t in tools]
 
         # wrapped with schemas_to_pyd to solve compatibility issues with non-cohere models
@@ -258,6 +260,9 @@ class AgentWithMCP:
         History items are dicts like {"role": "user"|"assistant", "content": "..."}
         in chronological order.
         """
+        if history is None:
+            history = []
+
         # 1) Trim to the last `max_history` entries (if set)
         if max_history is not None and max_history > 0:
             working = list(history[-max_history:])
@@ -288,10 +293,14 @@ class AgentWithMCP:
     #
     # ---------- main loop ----------
     #
-    async def answer(self, question: str, history: list = None) -> dict:
+    async def answer(self, question: str, history: Optional[list] = None) -> dict:
         """
         Run the LLM+MCP loop until the model stops calling tools.
         """
+        # Ensure history is always a list
+        if history is None:
+            history = []
+
         # add the SYSTEM PROMPT and current request
         messages = self._build_messages(
             history=history,
