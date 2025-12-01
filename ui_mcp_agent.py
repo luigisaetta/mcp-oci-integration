@@ -27,6 +27,7 @@ TIMEOUT = 60
 
 
 def get_username():
+    """Get the authenticated username from Streamlit headers, if available."""
     headers = st.context.headers
     return headers.get("X-Auth-User")
 
@@ -136,6 +137,8 @@ if "last_pdf_name" not in st.session_state:
 if "last_pdf_text" not in st.session_state:
     st.session_state.last_pdf_text = None
 
+answer_metadata = {}
+
 # read the username (if present)
 USER = get_username()
 logger.info("Authenticated user: %s", USER)
@@ -204,15 +207,20 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("Thinking with support from MCP tools…"):
                 try:
-                    ANSWER = asyncio.run(
+                    # now the agent returns a dict (01/12/2025)
+                    answer_dict = asyncio.run(
                         # we pass also the history (chat)
                         st.session_state.agent.answer(prompt, st.session_state.chat)
                     )
+                    # unpack
+                    ANSWER = answer_dict.get("answer", "No answer returned.")
+                    # escape $ in the answer to avoid Streamlit interpreting it as LaTeX
+                    ANSWER = ANSWER.replace("$", "\\$")
+
+                    answer_metadata = answer_dict.get("metadata", {})
                 except Exception as e:
                     ANSWER = f"Error: {e}"
-
-                # escape $ in the answer to avoid Streamlit interpreting it as LaTeX
-                ANSWER = ANSWER.replace("$", "\\$")
+                    logger.error(e)
 
                 st.write(ANSWER)
                 st.session_state.chat.append({"role": "assistant", "content": ANSWER})
@@ -226,5 +234,6 @@ with st.expander("🔎 Debug / State"):
             "mcp_url": mcp_url,
             "model_id": model_id,
             "timeout": TIMEOUT,
+            "last_tooling_metadata": answer_metadata,
         }
     )

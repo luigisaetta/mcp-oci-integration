@@ -2,9 +2,9 @@
 Identify all compartments missing the 'ref-comp' freeform tag.
 """
 
-import oci
-from typing import Dict, List, Any
+from typing import Dict, List
 
+import oci
 from oci_utils import get_identity_client
 
 TAG_KEY = "ref-comp"

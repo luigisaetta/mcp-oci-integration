@@ -255,7 +255,7 @@ def init_random_events_for_current_week() -> List[Dict[str, Any]]:
         JSON-safe representation of the created events (including ids).
     """
     # Event titles pool
-    TITLES = [
+    titles = [
         "Team Meeting",
         "Client Call",
         "Lunch Break",
@@ -268,7 +268,7 @@ def init_random_events_for_current_week() -> List[Dict[str, Any]]:
     ]
 
     # Durations in minutes
-    DURATIONS = [30, 45, 60, 90]
+    durations = [30, 45, 60, 90]
 
     # Determine current week's Monday
     today = datetime.now()
@@ -293,7 +293,7 @@ def init_random_events_for_current_week() -> List[Dict[str, Any]]:
             microsecond=0,
         )
 
-        duration = random.choice(DURATIONS)
+        duration = random.choice(durations)
         end_dt = start_dt + timedelta(minutes=duration)
 
         # Build start/end strings in ISO 8601
@@ -301,7 +301,7 @@ def init_random_events_for_current_week() -> List[Dict[str, Any]]:
         end_str = end_dt.isoformat()
 
         # Create event using add_event() so conflict detection works
-        ev = add_event(title=random.choice(TITLES), start=start_str, end=end_str)
+        ev = add_event(title=random.choice(titles), start=start_str, end=end_str)
         created_events.append(ev)
 
     return created_events

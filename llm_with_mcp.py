@@ -288,7 +288,7 @@ class AgentWithMCP:
     #
     # ---------- main loop ----------
     #
-    async def answer(self, question: str, history: list = None) -> str:
+    async def answer(self, question: str, history: list = None) -> dict:
         """
         Run the LLM+MCP loop until the model stops calling tools.
         """
@@ -303,6 +303,10 @@ class AgentWithMCP:
             #
             # This is the tool-calling loop
             #
+
+            # to store the list of tools we're calling
+            tool_names = []
+
             while True:
                 # added to integrate with APM tracing
                 with start_span("llm_invoke", model=self.llm.model_id):
@@ -312,10 +316,14 @@ class AgentWithMCP:
 
                     tool_calls = getattr(ai, "tool_calls", None) or []
                     if not tool_calls:
-                        # Final answer
-                        return ai.content
+                        # Final answer !!!
 
-                    messages.append(ai)  # keep the AI msg that requested tools
+                        # changed to dict to add metadata
+                        metadata = {"tool_names": tool_names}
+                        return {"answer": ai.content, "metadata": metadata}
+
+                    # keep the AI msg that requested tools
+                    messages.append(ai)
 
                     # Execute tool calls and append ToolMessage for each
                     for tc in tool_calls:
@@ -344,6 +352,7 @@ class AgentWithMCP:
                                     name=name,
                                 )
                                 messages.append(tm)
+                                tool_names.append(name)
 
                         except Exception as e:
                             messages.append(
@@ -384,10 +393,15 @@ no additional comments or explanation.
     # Optional: start with an empty history; replace with your stored chat history if needed
     HISTORY = []
 
-    result = asyncio.run(run(QUESTION, history=HISTORY))
+    # now agent_result is a dict
+    agent_result = asyncio.run(run(QUESTION, history=HISTORY))
 
     # Print to console
-    print(result)
+    print("")
+    print(agent_result["answer"])
+    print("")
+    print("Tools called:", agent_result["metadata"]["tool_names"])
+    print("")
 
     # Save also to a markdown file
     DIR = "reports"
@@ -396,6 +410,6 @@ no additional comments or explanation.
     FILENAME = f"./{DIR}/finops_usage_report_{today}.md"
 
     with open(FILENAME, "w", encoding="utf-8") as f:
-        f.write(str(result))
+        f.write(str(agent_result["answer"]))
 
     print(f"\nMarkdown table saved to {FILENAME}")
