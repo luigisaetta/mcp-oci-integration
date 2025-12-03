@@ -130,7 +130,8 @@ def get_compartment_id_by_name(name: str) -> str | None:
 
 def list_all_compartments() -> List[oci.identity.models.Compartment]:
     """
-    Return ACTIVE compartments (including sub-compartments) + a synthetic root entry for the tenancy.
+    Return ACTIVE compartments (including sub-compartments) +
+    a synthetic root entry for the tenancy.
     """
 
     retry = build_retry_strategy()

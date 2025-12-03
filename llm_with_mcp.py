@@ -11,12 +11,15 @@ some problems with llama 3.3
 
 27/10/2024: added APM tracing support
 01/12/2025: changed the agent to return a dict with answer and metadata
+
+01/12/2025: started working on Streaming support (not yet ready)
+02/12/2025: first working version with streaming events
 """
 
 import json
 import asyncio
 import logging
-from typing import List, Dict, Any, Callable, Sequence, Optional
+from typing import List, Dict, Any, Callable, Sequence, Optional, TypedDict, Literal
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -65,12 +68,38 @@ TIMEOUT = 60
 # the scope for the JWT token
 SCOPE = "urn:opc:idm:__myscopes__"
 
+DEFAULT_MODEL_ID = "xai.grok-4"
+
+QUEUE_TIMEOUT = 0.1
+# ---- Config ----
+
 # eventually you can taylor the SYSTEM prompt here
 # to help identify the tools and their usage.
 # modified to be compliant to OpenAI spec.
 
 # Use this as a template. It will be formatted with today_long/today_iso.
 SYSTEM_PROMPT_TEMPLATE = AGENT_SYSTEM_PROMPT_TEMPLATE
+
+
+class StreamEvent(TypedDict, total=False):
+    """
+    Event emitted during streaming answer.
+    """
+
+    type: Literal[
+        "start",
+        "tool_call",
+        "tool_result",
+        "tool_error",
+        "final_answer",
+    ]
+
+    question: str
+    tool: str
+    args: Dict[str, Any]
+    payload: Any
+    answer: str
+    metadata: Dict[str, Any]
 
 
 def default_jwt_supplier() -> Optional[str]:
@@ -156,8 +185,6 @@ class AgentWithMCP:
         self.timeout = timeout
         self.llm = llm
         self.model_with_tools = None
-        # optional: cache tools to avoid re-listing every run
-        self._tools_cache = None
 
         self.logger = logger
 
@@ -217,7 +244,7 @@ class AgentWithMCP:
         mcp_url: str = MCP_URL,
         jwt_supplier: Callable[[], Optional[str]] = default_jwt_supplier,
         timeout: int = TIMEOUT,
-        model_id: str = "xai.grok-4",
+        model_id: str = DEFAULT_MODEL_ID,
     ):
         """
         Async factory: fetch tools, bind them to the LLM, return a ready-to-use agent.
@@ -233,7 +260,6 @@ class AgentWithMCP:
             logger.warning("No tools discovered at %s", mcp_url)
             tools = []
 
-        self._tools_cache = tools
         schemas = [self._tool_to_schema(t) for t in tools]
 
         # wrapped with schemas_to_pyd to solve compatibility issues with non-cohere models
@@ -290,94 +316,395 @@ class AgentWithMCP:
         msgs.append(HumanMessage(content=current_user_prompt))
         return msgs
 
+    async def _invoke_llm(self, messages: List[Any]) -> AIMessage:
+        """
+        Helper.
+        Single place where we call the LLM with tools.
+        Also, integrate with APM (if enabled)
+        Keeps tracing + logging together so we can easily change behavior later.
+        """
+        with start_span("llm_invoke", model=self.llm.model_id):
+            self.logger.info("Invoking LLM...")
+            return await self.model_with_tools.ainvoke(messages)
+
     #
     # ---------- main loop ----------
     #
+    async def _run_tool_loop(
+        self,
+        messages: List[Any],
+        event_handler: Optional[Callable[[StreamEvent], None]] = None,
+    ) -> tuple[AIMessage, Dict[str, Any]]:
+        """
+        Core LLM + MCP tool-calling loop.
+
+        This method executes the iterative interaction between the LLM and the MCP server.
+        It receives an initial list of messages (system prompt, optional history, and the
+        current user prompt) and repeatedly:
+
+        1. Invokes the LLM with the current messages.
+        2. Checks whether the LLM emitted any tool calls.
+        3. If no tool calls are present:
+            → The loop terminates and the final AIMessage is returned.
+        4. If tool calls are present:
+            → Each tool call is executed against the MCP server.
+            → For every tool invocation, a corresponding ToolMessage is appended
+                to the message list before the next LLM invocation.
+
+        The method returns:
+            - The final AIMessage produced by the LLM (the answer after all tools are resolved).
+            - A metadata dictionary containing:
+                * tool_names:   list of tools invoked in order
+                * tool_params:  list of parameter sets used for each tool
+                * tool_results: list of raw results (or errors) returned by the tools
+
+        If an `event_handler` callable is provided, the loop emits structured events
+        as dictionaries, such as:
+            - {"type": "tool_call",   "tool": <name>, "args": <dict>}
+            - {"type": "tool_result", "tool": <name>, "args": <dict>, "payload": <any>}
+            - {"type": "tool_error",  "tool": <name>, "args": <dict>, "payload": <str>}
+
+        These events enable streaming of tool activity without exposing internal state.
+        """
+
+        tool_names: list[str] = []
+        tool_params: list[dict] = []
+        tool_results: list[dict] = []
+
+        with start_span("tool_calling_loop", model=self.llm.model_id):
+            while True:
+                ai: AIMessage = await self._invoke_llm(messages)
+
+                tool_calls = getattr(ai, "tool_calls", None) or []
+                if not tool_calls:
+                    # Final answer !!!
+                    metadata = {
+                        "tool_names": tool_names,
+                        "tool_params": tool_params,
+                        "tool_results": tool_results,
+                    }
+                    return ai, metadata
+
+                # keep the AI msg that requested tools
+                messages.append(ai)
+
+                # Execute tool calls and append ToolMessage for each
+                for tc in tool_calls:
+                    name = tc["name"]
+                    args = tc.get("args") or {}
+
+                    # Notify about the tool_call if a handler is provided
+                    if event_handler is not None:
+                        event_handler(
+                            {
+                                "type": "tool_call",
+                                "tool": name,
+                                "args": args,
+                            }
+                        )
+
+                    try:
+                        # here we call the tool
+                        with start_span("tool_call", tool=name):
+                            result = await self._call_tool(name, args)
+
+                            payload = (
+                                getattr(result, "data", None)
+                                or getattr(result, "content", None)
+                                or str(result)
+                            )
+                            # to avoid double encoding
+                            tool_content = (
+                                json.dumps(payload, ensure_ascii=False)
+                                if isinstance(payload, (dict, list))
+                                else str(payload)
+                            )
+                            tm = ToolMessage(
+                                content=tool_content,
+                                # must match the call id
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
+                            messages.append(tm)
+                            tool_names.append(name)
+                            tool_params.append({"tool": name, "args": args})
+                            tool_results.append(
+                                {
+                                    "tool": name,
+                                    "args": args,
+                                    "result": payload,
+                                }
+                            )
+
+                            # Notify about the tool_result
+                            if event_handler is not None:
+                                event_handler(
+                                    {
+                                        "type": "tool_result",
+                                        "tool": name,
+                                        "args": args,
+                                        "payload": payload,
+                                    }
+                                )
+
+                    except Exception as e:
+                        error_payload = {"error": str(e)}
+
+                        messages.append(
+                            ToolMessage(
+                                content=json.dumps(error_payload),
+                                tool_call_id=tc["id"],
+                                name=name,
+                            )
+                        )
+
+                        tool_results.append(
+                            {
+                                "tool": name,
+                                "args": args,
+                                "error": str(e),
+                            }
+                        )
+
+                        # Notify about the tool_error
+                        if event_handler is not None:
+                            event_handler(
+                                {
+                                    "type": "tool_error",
+                                    "tool": name,
+                                    "args": args,
+                                    "payload": str(e),
+                                }
+                            )
+
     async def answer(self, question: str, history: Optional[list] = None) -> dict:
         """
-        Run the LLM+MCP loop until the model stops calling tools.
+        Execute the full LLM + MCP interaction loop in non-streaming mode.
+
+        This method builds the complete message list for the request
+        (system prompt + optionally trimmed conversation history + new user message),
+        then delegates execution to `_run_tool_loop`, which:
+
+            - Invokes the LLM
+            - Resolves any tool calls by querying the MCP server
+            - Repeats until the model produces a final, tool-free answer
+
+        The method returns a dictionary with the standard non-streaming response format:
+
+        {
+            "answer":   <final LLM answer as a string>,
+            "metadata": {
+                "tool_names":   [...],    # tools invoked in order
+                "tool_params":  [...],    # arguments for each invocation
+                "tool_results": [...]     # raw results or errors from each tool
+            }
+        }
+
+        This is the synchronous, batched version of the agent:
+        no streaming events are emitted, and the entire response becomes
+        available only after the tool-calling loop completes.
         """
+
         # Ensure history is always a list
         if history is None:
             history = []
 
-        # add the SYSTEM PROMPT and current request
+        # Build initial messages (system + trimmed history + current user prompt)
         messages = self._build_messages(
             history=history,
             system_prompt=build_system_prompt(),
             current_user_prompt=question,
         )
 
-        with start_span("tool_calling_loop", model=self.llm.model_id):
-            #
-            # This is the tool-calling loop
-            #
+        # Delegate the core loop to the helper
+        ai, metadata = await self._run_tool_loop(messages)
 
-            # to store the list of tools we're calling
-            tool_names = []
-            tool_params = []
+        # Keep the same public return format as before
+        return {"answer": ai.content, "metadata": metadata}
 
-            while True:
-                # added to integrate with APM tracing
-                with start_span("llm_invoke", model=self.llm.model_id):
-                    logger.info("Invoking LLM...")
+    async def answer_streaming(self, question: str, history: Optional[list] = None):
+        """
+        Execute the full LLM + MCP interaction loop in streaming mode.
 
-                    ai: AIMessage = await self.model_with_tools.ainvoke(messages)
+        This method behaves like `answer`, but instead of returning a single
+        final result, it yields structured events throughout the execution
+        via an async generator.
 
-                    tool_calls = getattr(ai, "tool_calls", None) or []
-                    if not tool_calls:
-                        # Final answer !!!
+        Event sequence:
 
-                        # changed to dict to add metadata
-                        metadata = {
-                            "tool_names": tool_names,
-                            "tool_params": tool_params,
-                        }
-                        return {"answer": ai.content, "metadata": metadata}
+        1. `start`
+            Emitted immediately, containing the user question:
+                {"type": "start", "question": <str>}
 
-                    # keep the AI msg that requested tools
-                    messages.append(ai)
+        2. During the MCP tool-calling loop:
+            - `tool_call`
+                {"type": "tool_call", "tool": <name>, "args": <dict>}
+            - `tool_result`
+                {"type": "tool_result", "tool": <name>, "args": <dict>, "payload": <any>}
+            - `tool_error`
+                {"type": "tool_error", "tool": <name>, "args": <dict>, "payload": <str>}
 
-                    # Execute tool calls and append ToolMessage for each
-                    for tc in tool_calls:
-                        name = tc["name"]
-                        args = tc.get("args") or {}
-                        try:
-                            # here we call the tool
-                            with start_span("tool_call", tool=name):
-                                result = await self._call_tool(name, args)
+            These events are emitted in real time as the LLM requests tools and the MCP
+            server executes them.
 
-                                payload = (
-                                    getattr(result, "data", None)
-                                    or getattr(result, "content", None)
-                                    or str(result)
-                                )
-                                # to avoid double encoding
-                                tool_content = (
-                                    json.dumps(payload, ensure_ascii=False)
-                                    if isinstance(payload, (dict, list))
-                                    else str(payload)
-                                )
-                                tm = ToolMessage(
-                                    content=tool_content,
-                                    # must match the call id
-                                    tool_call_id=tc["id"],
-                                    name=name,
-                                )
-                                messages.append(tm)
-                                tool_names.append(name)
-                                tool_params.append({"tool": name, "args": args})
+        3. Final event:
+            - `final_answer`
+                {"type": "final_answer", "answer": <str>, "metadata": <dict>}
 
-                        except Exception as e:
-                            messages.append(
-                                ToolMessage(
-                                    content=json.dumps({"error": str(e)}),
-                                    tool_call_id=tc["id"],
-                                    name=name,
-                                )
-                            )
+        Notes:
+        - Only tool-related events are streamed in real time.
+        - The final answer is produced only after `_run_tool_loop` has fully completed.
+        - The complete answer is sent in a single `final_answer` event.
+        - This interface is designed to be consumed by UI frameworks (e.g., Streamlit)
+          or any synchronous code through `run_streaming_sync`.
+        """
+
+        # 1) Immediate start event
+        start_event: StreamEvent = {
+            "type": "start",
+            "question": question,
+        }
+        logger.info("STREAMING EVENT (start): %s", start_event)
+        yield start_event
+
+        if history is None:
+            history = []
+
+        # 2) Build initial messages (same as in answer())
+        messages = self._build_messages(
+            history=history,
+            system_prompt=build_system_prompt(),
+            current_user_prompt=question,
+        )
+
+        # 3) Queue for events emitted by the tool loop
+        queue: asyncio.Queue[StreamEvent] = asyncio.Queue()
+        loop_done = asyncio.Event()
+        final_ai: Optional[AIMessage] = None
+        final_metadata: Dict[str, Any] = {}
+        loop_error: Optional[Exception] = None
+
+        # 4) event_handler used by _run_tool_loop
+        def handler(ev: StreamEvent):
+            queue.put_nowait(ev)
+
+        # 5) Async task that runs the core loop
+        async def _run_loop_task():
+            nonlocal final_ai, final_metadata, loop_error
+            try:
+                ai, metadata = await self._run_tool_loop(
+                    messages, event_handler=handler
+                )
+                final_ai = ai
+                final_metadata = metadata
+            except Exception as e:
+                loop_error = e
+            finally:
+                loop_done.set()
+
+        loop_task = asyncio.create_task(_run_loop_task())
+
+        # 6) Consume events from the queue as they arrive
+        while True:
+            # exit condition: loop finished and queue is empty
+            if loop_done.is_set() and queue.empty():
+                break
+
+            try:
+                ev: StreamEvent = await asyncio.wait_for(
+                    queue.get(), timeout=QUEUE_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                continue
+
+            ev_type = ev.get("type")
+
+            if ev_type != "tool_result":
+                logger.info("STREAMING EVENT (%s): %s", ev_type, ev)
+            else:
+                # reduced logging
+                logger.info("STREAMING EVENT (%s)...", ev_type)
+
+            yield ev
+
+        # 7) Ensure the tool loop task is done
+        await loop_task
+
+        # Propagate failure if the loop raised
+        if loop_error is not None:
+            raise loop_error
+
+        # 8) Emit a single final_answer event
+        full_answer = final_ai.content if final_ai is not None else ""
+
+        final_event: StreamEvent = {
+            "type": "final_answer",
+            "answer": full_answer,
+            "metadata": final_metadata,
+        }
+        logger.info("STREAMING EVENT (final_answer): %s", final_event)
+        yield final_event
+
+    async def _stream_llm_messages(self, messages: List[Any]):
+        """
+        Internal helper: stream text from the underlying LLM using .astream(...),
+        normalizing provider-specific chunk formats into plain text pieces.
+
+        This does NOT use tools; it just streams raw model output for the given
+        message list.
+        """
+        async for chunk in self.llm.astream(messages):
+            piece = ""
+
+            content = getattr(chunk, "content", None)
+            if isinstance(content, str):
+                piece = content
+            elif isinstance(content, list):
+                # Some providers return a list of parts; extract the text.
+                parts = []
+                for c in content:
+                    text = None
+                    if isinstance(c, dict):
+                        text = c.get("text") or ""
+                    else:
+                        text = getattr(c, "text", "") or ""
+                    if text:
+                        parts.append(text)
+                piece = "".join(parts)
+            else:
+                # Fallback: try .delta if present
+                delta = getattr(chunk, "delta", None)
+                if isinstance(delta, str):
+                    piece = delta
+
+            if not piece:
+                continue
+
+            yield piece
+
+    async def stream_text_only(self, question: str):
+        """
+        Experimental helper: stream ONLY a plain LLM answer (no tools),
+        using the underlying model's .astream(...) interface.
+
+        This does NOT use the MCP tools or the agent loop:
+        - builds [SystemMessage, HumanMessage]
+        - calls self.llm.astream(...) via _stream_llm_messages(...)
+        - yields text chunks as they arrive
+        """
+        system_prompt = build_system_prompt()
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=question),
+        ]
+
+        async for piece in self._stream_llm_messages(messages):
+            yield piece
 
 
+#
+# run methods
+#
 async def run(question: str, history):
     """
     Manage the non streaming case
@@ -387,43 +714,44 @@ async def run(question: str, history):
     return await agent.answer(question, history)
 
 
-if __name__ == "__main__":
-    # A single, multi-line prompt (triple quotes avoids accidental string concatenation issues)
-    QUESTION = """
-Give me top 20 compartments for usage (amount) in november 2025. Put all the data in a table. 
+async def run_streaming(question: str, history):
+    """
+    Streaming wrapper for the agent.
 
-Consider the current usage and then do a linear forecast over all the month. 
-In the table put the current usage and the forecasted. 
+    Currently:
+    - creates the agent
+    - delegates to `answer_streaming`
+    - exposes an async generator of events
+    """
+    agent = await AgentWithMCP.create()
 
-In addition, before deciding the top 20, do some aggregation: 
-* aggregate the costs for mgueury and devops and put the total under the name mgueury 
-* aggregate the costs for omasalem and ADBAGENT and put the total under omasalem
-* aggregate the costs for matwolf and ai-test-oke and put the result under the name matwolf
-* aggregate the costs for lsaetta and lsaetta-apm and put the result under the name lsaetta. 
+    async for event in agent.answer_streaming(question, history):
+        yield event
 
-Add a final row to the table with the overall total. Return only the table with an heading, 
-no additional comments or explanation.
-"""
-    # Optional: start with an empty history; replace with your stored chat history if needed
-    HISTORY = []
 
-    # now agent_result is a dict
-    agent_result = asyncio.run(run(QUESTION, history=HISTORY))
+def run_streaming_sync(
+    question: str,
+    history,
+    on_event: Callable[[StreamEvent], None],
+) -> None:
+    """
+    Synchronous wrapper around the async streaming API.
 
-    # Print to console
-    print("")
-    print(agent_result["answer"])
-    print("")
-    print("Tools called:", agent_result["metadata"]["tool_names"])
-    print("")
+    Usage pattern (e.g. in Streamlit or any sync code):
 
-    # Save also to a markdown file
-    DIR = "reports"
-    today = datetime.now().strftime("%Y%m%d")
+        def handle_event(ev: StreamEvent):
+            # update UI, print, etc.
+            ...
 
-    FILENAME = f"./{DIR}/finops_usage_report_{today}.md"
+        run_streaming_sync("ciao", history=[], on_event=handle_event)
 
-    with open(FILENAME, "w", encoding="utf-8") as f:
-        f.write(str(agent_result["answer"]))
+    This function:
+    - runs the async generator `run_streaming(...)` inside asyncio.run
+    - forwards each event to the provided `on_event` callback
+    """
 
-    print(f"\nMarkdown table saved to {FILENAME}")
+    async def _driver():
+        async for ev in run_streaming(question, history):
+            on_event(ev)
+
+    asyncio.run(_driver())
