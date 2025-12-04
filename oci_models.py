@@ -53,6 +53,7 @@ ALLOWED_EMBED_MODELS_TYPE = {"OCI", "NVIDIA"}
 
 # for gpt5, since max tokens is not supported
 MODELS_WITHOUT_KWARGS = {
+    "openai.gpt-oss-120b",
     "openai.gpt-5",
     "openai.gpt-4o-search-preview",
     "openai.gpt-4o-search-preview-2025-03-11",
@@ -69,7 +70,7 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
     if model_id not in MODELS_WITHOUT_KWARGS:
         _model_kwargs = {
             "temperature": temperature,
-            "max_tokens": max_tokens,
+            "max_tokens": max_tokens
         }
     else:
         # for some models (OpenAI search) you cannot set those params

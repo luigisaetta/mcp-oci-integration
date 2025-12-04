@@ -385,6 +385,16 @@ class AgentWithMCP:
                     }
                     return ai, metadata
 
+                # --- NEW: normalize tool_call ids for providers that omit them (e.g. Gemini 2.5) ---
+                for idx, tc in enumerate(tool_calls):
+                    call_id = tc.get("id") or tc.get("tool_call_id")
+                    if not call_id:
+                        # Synthesize a stable id for this interaction
+                        call_id = f"tc-{len(tool_names) + idx}"
+                    # Ensure the dict has a proper 'id' field for OCI / OpenAI-style APIs
+                    tc["id"] = call_id
+                # --- END NEW ---
+                
                 # keep the AI msg that requested tools
                 messages.append(ai)
 
@@ -392,6 +402,12 @@ class AgentWithMCP:
                 for tc in tool_calls:
                     name = tc["name"]
                     args = tc.get("args") or {}
+
+                    # Defensive: ensure we always have a non-empty string id
+                    # to avoid troubles with Gemini 2.5
+                    call_id = tc.get("id") or tc.get("tool_call_id")
+                    if not call_id:
+                        call_id = f"tc-{len(tool_names)}"
 
                     # Notify about the tool_call if a handler is provided
                     if event_handler is not None:
@@ -421,8 +437,8 @@ class AgentWithMCP:
                             )
                             tm = ToolMessage(
                                 content=tool_content,
-                                # must match the call id
-                                tool_call_id=tc["id"],
+                                # changed for Gemini compatibility
+                                tool_call_id=call_id,
                                 name=name,
                             )
                             messages.append(tm)
@@ -453,7 +469,7 @@ class AgentWithMCP:
                         messages.append(
                             ToolMessage(
                                 content=json.dumps(error_payload),
-                                tool_call_id=tc["id"],
+                                tool_call_id=call_id,
                                 name=name,
                             )
                         )

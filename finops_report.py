@@ -9,10 +9,9 @@ from llm_with_mcp import run
 if __name__ == "__main__":
     # A single, multi-line prompt (triple quotes avoids accidental string concatenation issues)
     QUESTION = """
-Give me top 20 compartments for usage (amount) in november 2025. Put all the data in a table. 
+Give me top 20 compartments for usage (amount) in the month of November 2025. 
+Put all the data in a table. 
 
-Consider the current usage and then do a linear forecast over all the month. 
-In the table put the current usage and the forecasted. 
 
 In addition, before deciding the top 20, do some aggregation: 
 * aggregate the costs for mgueury and devops and put the total under the name mgueury 

@@ -65,14 +65,15 @@ if REGION == "us-chicago-1":
         "openai.gpt-4.1",
         "openai.gpt-4o",
         "openai.gpt-5",
-        "cohere.command-a-03-2025",
+        "openai.gpt-oss-120b",
+        "google.gemini-2.5-pro",
     ]
 else:
     MODEL_LIST = [
         "openai.gpt-4.1",
         "openai.gpt-5",
+        "openai.gpt-oss-120b",
         "meta.llama-3.3-70b-instruct",
-        "cohere.command-a-03-2025",
     ]
 
 # semantic search
