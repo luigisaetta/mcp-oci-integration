@@ -1,5 +1,32 @@
 """
-This is an MCP Server that provides Internet Search capabilities.
+File name: mcp_internet_search.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
+
+Description:
+    This module implements an MCP (Model Context Protocol) server for internet search capabilities.
+    It provides a tool to perform searches using an LLM (e.g., OpenAI GPT-4o-search-preview) with a prompt template,
+    returning key points, summaries, and references from credible sources based on the query.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_internet_search import internet_search
+
+        search_results = internet_search("latest AI advancements")
+        # Or run the server: python mcp_internet_search.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and relies on LangChain for prompt handling and OCI models.
+    The tool returns a dictionary with 'search_result' containing the formatted output for easy integration with MCP agents.
+
+Warnings:
+    This module is in development and may change in future versions. It depends on external LLM services, so ensure API keys
+    are configured and handle potential rate limits or availability issues in production.
 """
 
 from typing import Dict, Any

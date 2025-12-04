@@ -1,5 +1,32 @@
 """
-MCP Server to query data regarding OCI usage and consumption
+File name: mcp_consumption.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
+
+Description:
+    This module implements an MCP (Model Context Protocol) server for querying OCI (Oracle Cloud Infrastructure)
+    usage and consumption data. It provides tools for generating usage summaries by service or compartment,
+    detailed breakdowns, and listing Autonomous Databases (ADBs) in specified compartments.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_consumption import usage_summary_by_service
+
+        results = usage_summary_by_service("2025-01-01", "2025-03-31")
+        # Or run the server: python mcp_consumption.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and relies on utilities from consumption_utils and oci_utils.
+    Tools are designed for integration with MCP agents and handle errors with structured dictionary outputs.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure date ranges do not exceed 93 days
+    to avoid API errors, and handle potential exceptions in production use.
 """
 
 from typing import Any, Dict, List

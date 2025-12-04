@@ -1,15 +1,32 @@
 """
-Semantic Search exposed as an MCP tool
-with added security with OCI IAM and JWT tokens.
-This version implements OpenAI spec and can be integrated
-with ChatGPT Deep Research.
+File name: mcp_deep_research_with_iam.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-To be fully compliant you need to implement two tools:
-* search (returns the list of IDs)
-* fetch (return the text given the ID)
+Description:
+    This module implements an MCP (Model Context Protocol) server for deep research capabilities using IAM authentication.
+    It likely provides tools for advanced searches, combining semantic vector store queries, internet research, or RAG pipelines
+    with OCI integration, returning structured results with references and summaries.
 
-Author: L. Saetta
-License: MIT
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_deep_research_with_iam import deep_research  # Assuming a primary tool name
+
+        results = deep_research("in-depth query on AI ethics")
+        # Or run the server: python mcp_deep_research_with_iam.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and relies on IAM-authenticated services like Oracle Vector Store or search utilities.
+    Tools return dictionaries with research outputs for easy integration with MCP agents.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure IAM authentication is properly configured
+    and handle potential errors related to external services, rate limits, or complex query processing.
 """
 
 from typing import Annotated, Dict, Any

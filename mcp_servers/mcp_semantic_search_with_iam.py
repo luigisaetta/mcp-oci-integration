@@ -1,9 +1,32 @@
 """
-Semantic Search exposed as an MCP tool
-with added security with OCI IAM and JWT tokens
+File name: mcp_semantic_search_with_iam.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-Author: L. Saetta
-License: MIT
+Description:
+    This module implements an MCP (Model Context Protocol) server for semantic search using Oracle Vector Store
+    with IAM authentication. It provides tools to list available collections, retrieve documents in a specific collection,
+    and perform semantic searches with query embeddings, returning relevant documents and metadata.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_semantic_search_with_iam import search
+
+        results = search("query text", "BOOKS")
+        # Or run the server: python mcp_semantic_search_with_iam.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and relies on OCI Vector Store utilities for embeddings and IAM auth.
+    Tools return structured dictionaries for easy integration with MCP agents; default collection is "BOOKS" if not specified.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure IAM authentication is properly configured
+    and handle potential errors related to vector store connections or query limits.
 """
 
 from typing import Annotated

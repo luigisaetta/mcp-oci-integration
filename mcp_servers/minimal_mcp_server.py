@@ -1,9 +1,30 @@
 """
-Minimal MCP server
+File name: minimal_mcp_server.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-This should be the starting point for any MCP server built with FastMCP.
-This is the version with new FastMCP library.
-Biggest difference: the class used to verify JWT.
+Description:
+    This module provides a minimal example of an MCP (Model Context Protocol) server built with FastMCP.
+    It defines basic tools (e.g., say_the_truth and get_weather) and demonstrates server creation and execution,
+    including JWT verification using the updated FastMCP library.
+
+Usage:
+    Use this as a template for custom MCP servers or run it directly as a standalone server.
+    Example:
+        # Run the server: python minimal_mcp_server.py
+        # Or extend it by adding custom tools decorated with @mcp.tool
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a starting point for building MCP servers in the MCP-OCI integration framework.
+    It uses mcp_utils for server creation and focuses on simplicity for quick prototyping.
+
+Warnings:
+    This module is in development and may change in future versions. It includes placeholder tools for demonstration;
+    replace them with real implementations and ensure proper security for production use.
 """
 
 from mcp_utils import create_server, run_server

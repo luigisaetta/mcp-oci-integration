@@ -1,23 +1,32 @@
 """
-MCP server exposing read-only access to a GitHub repository.
+File name: mcp_github.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-Tools provided:
+Description:
+    This module implements an MCP (Model Context Protocol) server for GitHub repository interactions.
+    It provides tools to list files and directories in a repository (with optional refs like branches or commits)
+    and retrieve the content of specific files, using GitHub API with repo normalization and authentication handling.
 
-1. list_repo_items
-   - List files and folders inside a given path of a GitHub repository.
-   - Useful to explore the repo structure (root or subdirectories).
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_github import list_repo_items
 
-2. get_file_content
-   - Read the content of a file (text) from the repository.
+        items = list_repo_items(repo_full_name="owner/repo", path=".")
+        # Or run the server: python mcp_github.py
 
-Semantics:
+License:
+    This code is released under the MIT License.
 
-- repo_full_name può essere:
-    * None / ""              -> usa GITHUB_DEFAULT_REPO (+ GITHUB_USERNAME se serve)
-    * "mcp-oci-integration"  -> viene normalizzato a "luigisaetta/mcp-oci-integration"
-    * "owner/repo"           -> usato così com'è
+Notes:
+    This is part of the MCP-OCI integration framework and relies on GitHub API utilities.
+    Tools support default repo configs and return structured dictionaries for easy integration with MCP agents.
 
-Tutta la normalizzazione e accesso GitHub è gestita da github_utils.
+Warnings:
+    This module is in development and may change in future versions. Ensure GitHub authentication (e.g., tokens) is configured
+    to avoid API rate limits or access errors, and handle private repos appropriately.
 """
 
 from typing import Any, Dict, List, Optional

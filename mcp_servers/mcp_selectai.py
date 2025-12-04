@@ -1,8 +1,32 @@
 """
-Text2SQL MCP server based on ADB Select AI
+File name: mcp_selectai.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-It requires that a Select AI profile has already been created
-in the DB schema used for the DB connection.
+Description:
+    This module implements an MCP (Model Context Protocol) server for Text2SQL capabilities using ADB Select AI.
+    It provides tools to generate SQL queries from natural language requests and execute them, requiring a pre-configured
+    Select AI profile in the database schema for integration with OCI (Oracle Cloud Infrastructure) databases.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_selectai import generate_sql
+
+        sql_query = generate_sql("List top 5 customers by sales")
+        # Or run the server: python mcp_selectai.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and relies on db_utils for SQL handling.
+    Tools return dictionaries with results or error messages for easy integration with MCP agents.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure a Select AI profile is created in the DB schema
+    prior to use, and handle potential exceptions related to database connections or query generation.
 """
 
 from typing import Any, Dict

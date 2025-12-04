@@ -1,7 +1,32 @@
 """
-Agenda MCP server implementation.
+File name: mcp_agenda.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-Implements tools to create, list, and delete agenda events.
+Description:
+    This module implements an MCP (Model Context Protocol) server for agenda and calendar management.
+    It provides tools to list events overlapping with a given time interval, create new events with automatic conflict detection,
+    and delete events by unique ID, using ISO date formats and structured JSON outputs for events and conflicts.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_agenda import create_event
+
+        event = create_event(title="Meeting", start_date="2025-12-05T10:00:00", end_date="2025-12-05T11:00:00")
+        # Or run the server: python mcp_agenda.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and uses in-memory storage for events (persistent options can be added).
+    Tools return dictionaries with details like event IDs, conflicts, and messages for easy integration with MCP agents.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure date inputs are in valid ISO formats to avoid errors,
+    and note that events are created even with conflicts—handle them appropriately in applications.
 """
 
 from typing import List, Dict, Any, Optional

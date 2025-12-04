@@ -1,5 +1,32 @@
 """
-Simulate an MCP server giving access to Employeee API
+File name: mcp_employee.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
+
+Description:
+    This module implements an MCP (Model Context Protocol) server for querying employee information.
+    It provides tools to retrieve data for individual employees by ID or name, as well as lists of all employees,
+    with structured outputs including details like department, location, and vacation days.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_employee import get_employee_info
+
+        employee_data = get_employee_info("1010")
+        # Or run the server: python mcp_employee.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP-OCI integration framework and uses mock or database-backed data for employee queries.
+    Tools return dictionaries with 'ok', 'employees', and 'error' keys for easy integration with MCP agents.
+
+Warnings:
+    This module is in development and may change in future versions. Handle sensitive employee data with care
+    to ensure privacy compliance, and note that real-world implementations should use secure data sources.
 """
 
 from typing import Any, Dict

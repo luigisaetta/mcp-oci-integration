@@ -1,10 +1,34 @@
 """
-Base infrastructure to reduce MCP server boilerplate.
+File name: mcp_base.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-- Creates a FastMCP server via your existing create_server (which manages JWT/etc.)
-- Auto-registers subclass methods tagged with @expose_tool
-- Centralizes logging, error handling, and optional result-wrapping
-- Optional lightweight on_call/on_error hooks for metrics (no auth logic here)
+Description:
+    This module provides the base class for MCP (Model Context Protocol) servers.
+    It defines abstract methods and common functionality for server implementations,
+    such as handling requests, authentication, and error management in a distributed system.
+
+Usage:
+    Import this module and subclass MCPBase to create custom server implementations.
+    Example:
+        from mcp_servers.mcp_base import MCPBase
+
+        class MyServer(MCPBase):
+            def process_request(self, request_data):
+                # Implement custom logic here
+                pass
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a foundational part of the MCP-OCI integration framework, designed for extensibility.
+    Subclasses should implement all abstract methods to ensure compatibility with MCP tools and APIs.
+
+Warnings:
+    This module is in development and may change in future versions. Ensure subclasses handle
+    potential breaking changes in abstract method signatures.
 """
 
 from typing import Callable, Optional
