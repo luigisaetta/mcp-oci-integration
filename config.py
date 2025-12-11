@@ -53,6 +53,10 @@ MAX_TOKENS = 4000
 
 # OCI general
 # REGION = "eu-frankfurt-1"
+
+# (11/12/2025) introduced to support the switch to langchain OpenAI integration
+USE_LANGCHAIN_OPENAI = False
+
 REGION = "us-chicago-1"
 SERVICE_ENDPOINT = f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 

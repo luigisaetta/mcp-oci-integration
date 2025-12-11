@@ -1,8 +1,52 @@
 """
-Utility functions for interacting with GitHub using PyGithub.
+File name: github_utils.py
+Author: Luigi Saetta
+Date last modified: 2025-12-08
+Python Version: 3.11
 
-This module is intentionally independent of MCP / FastMCP so it can be
-tested and reused easily.
+Description:
+    Utility module providing high-level helper functions for interacting with GitHub
+    through the PyGithub library. It provides:
+        - Authentication handling (token retrieval and validation)
+        - Repository normalization and resolution (owner/repo inference)
+        - Functions to list directories and files
+        - Functions to retrieve file content with correct decoding
+        - Functions to list repository commits, optionally filtered by path or ref
+
+    The module is intentionally independent from MCP / FastMCP to maximize
+    reusability and simplify testing. It is used by MCP servers (e.g., mcp_github)
+    but can also be imported standalone in any Python application.
+
+Usage:
+    Example:
+        from github_utils import get_repo, list_directory, get_file_content
+
+        repo = get_repo("myuser/myrepo")
+        items = list_directory(repo_full_name="myuser/myrepo", path="src")
+        file_info = get_file_content("myuser/myrepo", "README.md")
+
+    Configuration:
+        Requires the following variables (from config and config_private):
+            - GITHUB_TOKEN
+            - GITHUB_USERNAME
+            - GITHUB_DEFAULT_REPO
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    - Repository names can be automatically expanded using the default configured
+      repo or username.
+    - Decoding of file content falls back to latin-1 when UTF-8 decoding fails.
+    - All returned structures are JSON-friendly dictionaries for easy integration
+      with higher-level systems (e.g., MCP agents).
+
+Warnings:
+    - Ensure GITHUB_TOKEN is configured; otherwise, GitHubConfigError is raised.
+    - Private repositories require appropriate permissions on the provided token.
+    - GitHub rate limits apply if token is missing or insufficient.
+    - Exceptions from PyGithub are wrapped in GithubConfigError with contextual
+      messages to simplify debugging.
 """
 
 from typing import Any, Dict, List, Optional

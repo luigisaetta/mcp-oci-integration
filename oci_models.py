@@ -35,6 +35,7 @@ from langchain_oracledb.vectorstores import OracleVS
 from custom_rest_embeddings import CustomRESTEmbeddings
 from utils import get_console_logger
 from config import (
+    USE_LANGCHAIN_OPENAI,
     STREAMING,
     AUTH,
     SERVICE_ENDPOINT,
@@ -68,23 +69,23 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
         ChatOCIGenAI: An instance of the OCI GenAI language model.
     """
     if model_id not in MODELS_WITHOUT_KWARGS:
-        _model_kwargs = {
-            "temperature": temperature,
-            "max_tokens": max_tokens
-        }
+        _model_kwargs = {"temperature": temperature, "max_tokens": max_tokens}
     else:
         # for some models (OpenAI search) you cannot set those params
         _model_kwargs = None
 
-    llm = ChatOCIGenAI(
-        auth_type=AUTH,
-        model_id=model_id,
-        service_endpoint=SERVICE_ENDPOINT,
-        compartment_id=COMPARTMENT_ID,
-        # changed to solve OpenAI/Grok4 issue
-        is_stream=STREAMING,
-        model_kwargs=_model_kwargs,
-    )
+    if not USE_LANGCHAIN_OPENAI:
+        llm = ChatOCIGenAI(
+            auth_type=AUTH,
+            model_id=model_id,
+            service_endpoint=SERVICE_ENDPOINT,
+            compartment_id=COMPARTMENT_ID,
+            is_stream=STREAMING,
+            model_kwargs=_model_kwargs,
+        )
+    else:
+        raise NotImplementedError("Langchain OpenAI integration not implemented yet.")
+
     return llm
 
 

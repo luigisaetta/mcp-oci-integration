@@ -325,6 +325,7 @@ class AgentWithMCP:
         """
         with start_span("llm_invoke", model=self.llm.model_id):
             self.logger.info("Invoking LLM...")
+
             return await self.model_with_tools.ainvoke(messages)
 
     #
@@ -394,7 +395,7 @@ class AgentWithMCP:
                     # Ensure the dict has a proper 'id' field for OCI / OpenAI-style APIs
                     tc["id"] = call_id
                 # --- END NEW ---
-                
+
                 # keep the AI msg that requested tools
                 messages.append(ai)
 
