@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"  # For Python dependencies
+    directory: "/"            # Location of requirements.txt (root)
+    schedule:
+      interval: "weekly"      # Or "daily" for more frequent checks
+    open-pull-requests-limit: 10  # Max PRs at once
+    labels: ["dependencies"]  # Optional: Add labels to PRs
+    commit-message:
+      prefix: "deps"          # Prefix for commit messages
+
