@@ -6,7 +6,7 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.10.0
 astroid==3.3.11
-attrs==25.3.0
+attrs==25.4.0
 Authlib==1.6.5
 backports.tarfile==1.2.0
 beartype==0.22.5
