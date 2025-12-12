@@ -7,4 +7,5 @@ nohup ./start_mcp_employee.sh & >> nohup.out
 # nohup ./start_mcp_oml_predict.sh & >> nohup.out
 nohup ./start_mcp_agenda.sh & >> nohup.out
 nohup ./start_mcp_github.sh & >> nohup.out
+nohup ./start_mcp_local_fs.sh & >> nohup.out
 

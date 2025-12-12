@@ -42,3 +42,5 @@ backends:
     url: "http://localhost:8700/mcp"
   - name: github
     url: "http://localhost:8900/mcp"
+  - name: local_fs
+    url: "http://localhost:8950/mcp"

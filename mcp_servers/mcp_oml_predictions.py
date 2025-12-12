@@ -1,7 +1,31 @@
 """
-This is an MCP Server that calls an OML model for prediction.
+File name: mcp_oml_predictions.py
+Author: Luigi Saetta
+Date last modified: 2025-12-04
+Python Version: 3.11
 
-In the demo: F1 race predictions based on team budget, driver age, etc.
+Description:
+    This module implements an MCP Server that calls an OML model for prediction.
+    In the demo: F1 race predictions based on team budget, driver age, etc.
+
+Usage:
+    Import this module to use its tools or run it as a standalone MCP server.
+    Example:
+        from mcp_servers.mcp_oml_predictions import oml_predict
+
+        result = oml_predict(race_year="2024", total_points="250", team_budget="100", driver_age="27")
+        # Or run the server: python mcp_oml_predictions.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is part of the MCP‑OCI integration framework.
+    The tool returns a dictionary with a single key "race_position".
+
+Warnings:
+    This module is in development and may change in future versions.
+    Ensure the OML service is reachable and the input types are valid.
 """
 
 from typing import Dict, Any
