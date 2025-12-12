@@ -38,3 +38,7 @@ backends:
   # OML Predictions for F1 data
   # - name: oml_predictions
   #  url: "http://localhost:8800/mcp"
+  - name: agenda
+    url: "http://localhost:8700/mcp"
+  - name: github
+    url: "http://localhost:8900/mcp"
