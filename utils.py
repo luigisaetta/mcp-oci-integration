@@ -28,7 +28,13 @@ from typing import List
 import logging
 import re
 import json
-from langchain.schema import Document
+
+try:
+    # LangChain 1.x
+    from langchain_core.documents import Document
+except ImportError:
+    # Pre-1.x
+    from langchain.schema import Document
 
 
 def get_console_logger(name: str = "ConsoleLogger", level: str = "INFO"):

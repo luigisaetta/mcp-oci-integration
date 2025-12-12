@@ -27,10 +27,13 @@ Warnings:
 """
 
 # switched to the new OCI langchain integration
+import httpx
 from langchain_oci import ChatOCIGenAI
+from langchain_openai import ChatOpenAI
 from langchain_oci import OCIGenAIEmbeddings
 from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain_oracledb.vectorstores import OracleVS
+from oci_openai import OciUserPrincipalAuth
 
 from custom_rest_embeddings import CustomRESTEmbeddings
 from utils import get_console_logger
@@ -84,7 +87,22 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
             model_kwargs=_model_kwargs,
         )
     else:
-        raise NotImplementedError("Langchain OpenAI integration not implemented yet.")
+        llm = ChatOpenAI(
+            model=model_id,
+            api_key="OCI",
+            base_url="https://inference.generativeai.us-chicago-1.oci.oraclecloud.com/20231130/actions/v1",
+            http_client=httpx.Client(
+                auth=OciUserPrincipalAuth(), headers={"CompartmentId": COMPARTMENT_ID}
+            ),
+            # use_responses_api=True
+            # stream_usage=True,
+            # temperature=None,
+            max_tokens=max_tokens,
+            # timeout=None,
+            # reasoning_effort="low",
+            # max_retries=2,
+            # other params...
+        )
 
     return llm
 

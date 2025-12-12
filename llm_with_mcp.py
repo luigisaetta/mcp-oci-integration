@@ -42,6 +42,7 @@ from utils import get_console_logger
 from tracing_utils import setup_tracing, start_span
 
 from config import (
+    USE_LANGCHAIN_OPENAI,
     USERNAME,
     IAM_BASE_URL,
     ENABLE_JWT_TOKEN,
@@ -254,6 +255,7 @@ class AgentWithMCP:
         llm = get_llm(model_id=model_id)
         # after, we call init()
         self = cls(mcp_url, jwt_supplier, timeout, llm)
+        self.model_id = model_id
 
         tools = await self._list_tools()
         if not tools:
@@ -323,7 +325,7 @@ class AgentWithMCP:
         Also, integrate with APM (if enabled)
         Keeps tracing + logging together so we can easily change behavior later.
         """
-        with start_span("llm_invoke", model=self.llm.model_id):
+        with start_span("llm_invoke", model=self.model_id):
             self.logger.info("Invoking LLM...")
 
             return await self.model_with_tools.ainvoke(messages)
@@ -372,7 +374,7 @@ class AgentWithMCP:
         tool_params: list[dict] = []
         tool_results: list[dict] = []
 
-        with start_span("tool_calling_loop", model=self.llm.model_id):
+        with start_span("tool_calling_loop", model=self.model_id):
             while True:
                 ai: AIMessage = await self._invoke_llm(messages)
 

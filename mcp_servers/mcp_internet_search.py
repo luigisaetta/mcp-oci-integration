@@ -30,7 +30,14 @@ Warnings:
 """
 
 from typing import Dict, Any
-from langchain.prompts import PromptTemplate
+
+try:
+    # LangChain 1.x
+    from langchain_core.prompts import PromptTemplate
+except ImportError:
+    # Pre-1.x
+    from langchain.prompts import PromptTemplate
+
 from langchain_core.messages import HumanMessage
 
 from oci_models import get_llm
