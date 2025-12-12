@@ -1,3 +1,9 @@
 .DS_Store # aggiungi ciò che ti serve
 config_private.py
 
+# Python bytecode and cache
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
