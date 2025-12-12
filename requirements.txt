@@ -56,7 +56,7 @@ keyring==25.7.0
 langchain==0.3.27
 langchain-community==0.3.29
 langchain-core==0.3.76
-langchain-oci==0.1.6
+langchain-oci==0.2.1
 langchain-oracledb==1.0.2
 langchain-text-splitters==0.3.11
 langgraph==0.6.7
