@@ -99,7 +99,7 @@ opentelemetry-propagator-b3==1.38.0
 opentelemetry-proto==1.38.0
 opentelemetry-sdk==1.38.0
 opentelemetry-semantic-conventions==0.59b0
-opentelemetry-util-http==0.59b0
+opentelemetry-util-http==0.60b1
 oracledb==3.3.0
 orjson==3.11.3
 ormsgpack==1.10.0
