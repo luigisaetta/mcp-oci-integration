@@ -124,7 +124,7 @@ platformdirs==4.4.0
 pluggy==1.6.0
 prometheus_client==0.24.0
 propcache==0.3.2
-protobuf==6.32.1
+protobuf==6.33.5
 py-key-value-aio==0.3.0
 py-key-value-shared==0.3.0
 pyarrow==21.0.0
