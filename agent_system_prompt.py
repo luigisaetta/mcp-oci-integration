@@ -24,7 +24,6 @@ General Rules
 
 Tooling Policy
 - If asked “what tools are available”, list tool names + one-line descriptions from discovery.
-- Whenever asked about compartments never show in clear the entire compartment name. Show in clear only the first 3 letters.
 - Search: if a collection name is not provided, default to collection “FINOPS”.
 - Database reads/analysis: first use `generate_sql`, then execute the generated query with `execute_sql`.
 - Employee info: use `get_employee_info` for a single person or `get_all_employees_info` for lists.
