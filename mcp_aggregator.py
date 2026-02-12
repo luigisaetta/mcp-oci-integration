@@ -16,16 +16,94 @@ MCP Aggregator (HTTP-only, FastMCP v2)
 import asyncio
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 import argparse
 import yaml
+import httpx
+import time
+import threading
 
 # fastmcp >= 2.x (recommended >= 2.10.0)
 from fastmcp import FastMCP, Client
 from fastmcp.server.auth.providers.jwt import JWTVerifier
 
-# to get a valid JWT token for the calls to the backends
-from llm_with_mcp import default_jwt_supplier
+
+def _make_cached_jwt_supplier(
+    iam_base_url: str,
+    scope: str,
+    secret_ocid: str,
+    refresh_skew_seconds: int = 60,
+) -> Callable[..., Optional[str]]:
+    """
+    Build a callable JWT supplier with short-lived in-memory cache.
+
+    Cache strategy:
+    - Keep a token until `refresh_at` (soft-expiry = expires_in - refresh_skew_seconds).
+    - After soft-expiry, try to refresh under lock.
+    - If refresh fails but previous token is still before hard-expiry, reuse it.
+    - If hard-expired and refresh fails, raise.
+    """
+    from oci_jwt_client import OCIJWTClient
+
+    lock = threading.Lock()
+    client = None
+    cached_token: Optional[str] = None
+    refresh_at: float = 0.0
+    hard_expiry_at: float = 0.0
+
+    def _get_client() -> OCIJWTClient:
+        nonlocal client
+        if client is None:
+            client = OCIJWTClient(iam_base_url, scope, secret_ocid)
+        return client
+
+    def _refresh(now: float) -> Optional[str]:
+        nonlocal cached_token, refresh_at, hard_expiry_at
+        token, _, expires_in = _get_client().get_token()
+        ttl = max(int(expires_in), 1)
+        cached_token = token
+        hard_expiry_at = now + ttl
+        refresh_at = now + max(1, ttl - max(0, int(refresh_skew_seconds)))
+        return cached_token
+
+    def _supplier(*_args, **_kwargs) -> Optional[str]:
+        nonlocal cached_token, refresh_at, hard_expiry_at
+        now = time.time()
+
+        if cached_token is not None and now < refresh_at:
+            return cached_token
+
+        with lock:
+            now = time.time()
+
+            # Double-check after lock to avoid duplicate refresh.
+            if cached_token is not None and now < refresh_at:
+                return cached_token
+
+            try:
+                return _refresh(now)
+            except Exception:
+                # If refresh fails, use previous token only if still hard-valid.
+                if cached_token is not None and now < hard_expiry_at:
+                    return cached_token
+                raise
+
+    return _supplier
+
+
+class BearerTokenAuth(httpx.Auth):
+    """
+    HTTPX auth helper that injects a Bearer token from a supplier callable.
+    """
+
+    def __init__(self, token_supplier: Callable[..., Optional[str]]):
+        self.token_supplier = token_supplier
+
+    def auth_flow(self, request):
+        token = self.token_supplier()
+        if token:
+            request.headers["Authorization"] = f"Bearer {token}"
+        yield request
 
 # ---------- DEBUG TOGGLE ----------
 # Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
@@ -130,6 +208,11 @@ class Aggregator:
             iam_base_url = cfg.get("iam_base_url", "").strip().rstrip("/")
             issuer = cfg.get("issuer", "")
             audience = cfg.get("audience", [])
+            scope = cfg.get("scope", "urn:opc:idm:__myscopes__")
+
+            # imported only when JWT mode is enabled
+            from config_private import SECRET_OCID
+
             self.auth = JWTVerifier(
                 # this is the url to get the public key from IAM
                 # the PK is used to check the JWT
@@ -137,10 +220,14 @@ class Aggregator:
                 issuer=issuer,
                 audience=audience,
             )
-            self.jwt_supplier = default_jwt_supplier()
+            self.jwt_supplier = _make_cached_jwt_supplier(
+                iam_base_url, scope, SECRET_OCID
+            )
+            self.backend_auth = BearerTokenAuth(self.jwt_supplier)
         else:
             self.auth = None
-            self.jwt_supplier = default_jwt_supplier()
+            self.jwt_supplier = None
+            self.backend_auth = None
 
         # Optional namespacing of exposed tool names
         self.use_namespace: bool = bool(cfg.get("use_namespace", False))
@@ -185,7 +272,7 @@ class Aggregator:
 
             # One-time discovery with a short-lived client
             async with Client(
-                backend_url, timeout=self.timeout, auth=self.jwt_supplier
+                backend_url, timeout=self.timeout, auth=self.backend_auth
             ) as client:
                 tools = await client.list_tools()
 
@@ -279,9 +366,10 @@ class Aggregator:
 
             async def proxy(arguments: dict):
                 async with Client(
-                    backend_url, timeout=self.timeout, auth=self.jwt_supplier
+                    backend_url, timeout=self.timeout, auth=self.backend_auth
                 ) as c:
-                    res = await c.call_tool(tool_name, arguments or {})
+                    payload = arguments if arguments else None
+                    res = await c.call_tool(tool_name, payload)
                 # Normalize output
                 val = getattr(res, "data", None)
                 if val is None:
@@ -331,8 +419,9 @@ class Aggregator:
         for name in props.keys():
             body_lines.append(f"    if {name} is not None: args['{name}'] = {name}")
         body_lines += [
-            "    async with Client(__backend_url, timeout=__timeout) as c:",
-            "        res = await c.call_tool(__tool_name, args)",
+            "    payload = args if args else None",
+            "    async with Client(__backend_url, timeout=__timeout, auth=__auth) as c:",
+            "        res = await c.call_tool(__tool_name, payload)",
             "    val = getattr(res, 'data', None)",
             "    if val is None:",
             "        txt = getattr(res, 'text', None)",
@@ -353,6 +442,7 @@ class Aggregator:
             "__tool_name": tool_name,
             "__timeout": self.timeout,
             "__wrap_result": wrap_result,
+            "__auth": self.backend_auth,
         }
         lcl = {}
         exec(src, glb, lcl)

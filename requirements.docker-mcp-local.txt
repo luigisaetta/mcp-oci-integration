@@ -1,0 +1,11 @@
+fastmcp==2.14.5
+oci==2.167.1
+PyYAML==6.0.2
+langchain-core==1.2.11
+langchain-oci==0.2.3
+langchain-openai==1.1.7
+langchain-community==0.4.1
+langchain-oracledb==1.2.0
+openai==2.15.0
+oci-openai==1.0.0
+oracledb==3.4.2

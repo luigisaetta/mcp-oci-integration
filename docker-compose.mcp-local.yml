@@ -1,0 +1,119 @@
+services:
+  mcp_consumption:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_consumption
+    command: ["python", "mcp_servers/mcp_consumption.py", "--host", "0.0.0.0", "--port", "9500"]
+    environment:
+      TRANSPORT: streamable-http
+      HOST: 0.0.0.0
+      PORT: 9500
+      ENABLE_JWT_TOKEN: "true"
+    ports:
+      - "9500:9500"
+    volumes:
+      - ${HOME}/.oci:/root/.oci:ro
+    restart: unless-stopped
+
+  mcp_agenda:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_agenda
+    command: ["python", "mcp_servers/mcp_agenda.py", "--host", "0.0.0.0", "--port", "8700"]
+    environment:
+      TRANSPORT: streamable-http
+      HOST: 0.0.0.0
+      PORT: 8700
+      ENABLE_JWT_TOKEN: "true"
+    ports:
+      - "8700:8700"
+    restart: unless-stopped
+
+  mcp_internet_search:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_internet_search
+    command: ["python", "mcp_servers/mcp_internet_search.py", "--host", "0.0.0.0", "--port", "8500"]
+    environment:
+      TRANSPORT: streamable-http
+      HOST: 0.0.0.0
+      PORT: 8500
+      ENABLE_JWT_TOKEN: "true"
+    ports:
+      - "8500:8500"
+    volumes:
+      - ${HOME}/.oci:/root/.oci:ro
+    restart: unless-stopped
+
+  mcp_semantic_search:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_semantic_search
+    command: ["python", "mcp_servers/mcp_semantic_search_with_iam.py", "--host", "0.0.0.0", "--port", "9000"]
+    environment:
+      TRANSPORT: streamable-http
+      HOST: 0.0.0.0
+      PORT: 9000
+      ENABLE_JWT_TOKEN: "true"
+      VECTOR_DB_USER: "${VECTOR_DB_USER:?set in .env}"
+      VECTOR_DB_PWD: "${VECTOR_DB_PWD:?set in .env}"
+      VECTOR_WALLET_PWD: "${VECTOR_WALLET_PWD:?set in .env}"
+      VECTOR_DSN: "${VECTOR_DSN:?set in .env}"
+      VECTOR_WALLET_DIR: "/opt/oci/wallet"
+    ports:
+      - "9000:9000"
+    volumes:
+      - ${VECTOR_WALLET_DIR_HOST:?set in .env}:/opt/oci/wallet:ro
+      - ${HOME}/.oci:/root/.oci:ro
+    restart: unless-stopped
+
+  mcp_employee:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_employee
+    command: ["python", "mcp_servers/mcp_employee.py", "--host", "0.0.0.0", "--port", "8600"]
+    environment:
+      TRANSPORT: streamable-http
+      HOST: 0.0.0.0
+      PORT: 8600
+      ENABLE_JWT_TOKEN: "true"
+    ports:
+      - "8600:8600"
+    restart: unless-stopped
+
+  mcp_aggregator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+    container_name: mcp_aggregator
+    command: ["python", "mcp_aggregator.py", "--config", "aggregator_config.docker.yaml"]
+    environment:
+      ENABLE_JWT_TOKEN: "true"
+    depends_on:
+      - mcp_consumption
+      - mcp_agenda
+      - mcp_internet_search
+      - mcp_semantic_search
+      - mcp_employee
+    ports:
+      - "6000:6000"
+    volumes:
+      - ${HOME}/.oci:/root/.oci:ro
+    restart: unless-stopped
