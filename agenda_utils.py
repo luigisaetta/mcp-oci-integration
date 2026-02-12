@@ -1,6 +1,24 @@
 """
-Agenda utils
-Provides in-memory storage and retrieval of calendar events.
+File name: agenda_utils.py
+Author: Luigi Saetta
+Date last modified: 2025-12-12
+Python Version: 3.11
+
+Description:
+    Provides in‑memory storage and retrieval of calendar events.
+
+Usage:
+    Import this module and call its functions, e.g.:
+        from agenda_utils import add_event, get_events
+
+License:
+    MIT License
+
+Notes:
+    Part of the MCP‑OCI integration demo.
+
+Warnings:
+    This module is in development and may change.
 """
 
 import random

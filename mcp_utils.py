@@ -76,6 +76,7 @@ def run_server(mcp):
     if TRANSPORT == "stdio":
         mcp.run(transport=TRANSPORT)
     else:
+        # streamable http
         mcp.run(
             transport=TRANSPORT,
             host=args.host,

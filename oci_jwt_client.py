@@ -58,6 +58,7 @@ class OCIJWTClient:
         """
         Read the client secret from OCI vault
         """
+        # this one should be modified to use also instance/resource principal
         oci_config = oci.config.from_file()
         secrets_client = oci.secrets.SecretsClient(oci_config)
 

@@ -27,8 +27,8 @@ Warnings:
 """
 
 # switched to the new OCI langchain integration
-import httpx
 from langchain_oci import ChatOCIGenAI
+from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_oci import OCIGenAIEmbeddings
 from langchain_community.vectorstores.utils import DistanceStrategy
@@ -58,7 +58,7 @@ ALLOWED_EMBED_MODELS_TYPE = {"OCI", "NVIDIA"}
 # for gpt5, since max tokens is not supported
 MODELS_WITHOUT_KWARGS = {
     "openai.gpt-oss-120b",
-    "openai.gpt-5",
+    "openai.gpt-5.2",
     "openai.gpt-4o-search-preview",
     "openai.gpt-4o-search-preview-2025-03-11",
 }
@@ -87,22 +87,10 @@ def get_llm(model_id=LLM_MODEL_ID, temperature=TEMPERATURE, max_tokens=MAX_TOKEN
             model_kwargs=_model_kwargs,
         )
     else:
-        llm = ChatOpenAI(
-            model=model_id,
-            api_key="OCI",
-            base_url="https://inference.generativeai.us-chicago-1.oci.oraclecloud.com/20231130/actions/v1",
-            http_client=httpx.Client(
-                auth=OciUserPrincipalAuth(), headers={"CompartmentId": COMPARTMENT_ID}
-            ),
-            # use_responses_api=True
-            # stream_usage=True,
-            # temperature=None,
-            max_tokens=max_tokens,
-            # timeout=None,
-            # reasoning_effort="low",
-            # max_retries=2,
-            # other params...
-        )
+        logger.info("Using Langchain OpenAI integration for OCI models...")
+        logger.info("Model ID: %s...", model_id)
+
+        raise NotImplementedError("Feature not implemented yet...")
 
     return llm
 

@@ -1,19 +1,38 @@
 """
-Based on fastmcp library.
-This one provide also support for security in MCP calls, using JWT token.
+File name: llm_with_mcp.py
+Author: Luigi Saetta
+Date last modified: 2025-12-12
+Python Version: 3.11
 
-This is the backend for the Streamlit MCP UI.
+Description:
+    Provides an agent for integrating LLMs with MCP servers, supporting tool calling, JWT security, APM tracing, and streaming.
+    Serves as the backend for the Streamlit MCP UI.
 
-15/09: the code is a bit long to handle some exceptions regarding tool calling
-with all the non-cohere models through Langchain.
-As for now, it is working fine with: Cohere, GPT and grok,
-some problems with llama 3.3
+Usage:
+    Import this module and call its functions, e.g.:
+        from llm_with_mcp import run, run_streaming
 
-27/10/2024: added APM tracing support
-01/12/2025: changed the agent to return a dict with answer and metadata
+License:
+    MIT License
 
-01/12/2025: started working on Streaming support (not yet ready)
-02/12/2025: first working version with streaming events
+Notes:
+    Part of the MCP‑OCI integration demo.
+
+Warnings:
+    This module is in development and may change.
+
+Updates:
+
+    15/09: the code is a bit long to handle some exceptions regarding tool calling
+    with all the non-cohere models through Langchain.
+    As for now, it is working fine with: GPT and grok,
+    some problems with llama 3.3
+
+    27/10/2024: added APM tracing support
+    01/12/2025: changed the agent to return a dict with answer and metadata
+
+    01/12/2025: started working on Streaming support (not yet ready)
+    02/12/2025: first working version with streaming events
 """
 
 import json
