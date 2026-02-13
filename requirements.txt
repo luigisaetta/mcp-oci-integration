@@ -24,7 +24,7 @@ click==8.2.1
 cloudpickle==3.1.2
 croniter==6.0.0
 cryptography==44.0.3
-cyclopts==4.2.4
+cyclopts==4.3.0
 dataclasses-json==0.6.7
 dill==0.4.0
 diskcache==5.6.3
