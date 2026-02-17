@@ -27,13 +27,9 @@ Warnings:
 """
 
 # switched to the new OCI langchain integration
-from langchain_oci import ChatOCIGenAI
-from openai import OpenAI
-from langchain_openai import ChatOpenAI
-from langchain_oci import OCIGenAIEmbeddings
+from langchain_oci import ChatOCIGenAI, OCIGenAIEmbeddings
 from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain_oracledb.vectorstores import OracleVS
-from oci_openai import OciUserPrincipalAuth
 
 from custom_rest_embeddings import CustomRESTEmbeddings
 from utils import get_console_logger

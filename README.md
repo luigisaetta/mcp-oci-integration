@@ -10,9 +10,29 @@ This repository contains code and examples to help in the following tasks:
 
 **Author**: L. Saetta
 
-**Reviewed**: 27.10.2025
+**Reviewed**: 28.01.2026
 
 ![MCP console](./images/mcp_cli.png)
+
+## Who should use this asset
+Use this assett if you want to experiment how-to build an AI Assistant integrated with several **MCP** servers.
+
+# When to use this asset?
+
+Use this asset to **prototype, demonstrate, or build** MCP-based integrations on **Oracle OCI**, especially in **enterprise or pre-production contexts**.
+
+It is a good fit if you need to:
+- **Expose enterprise data or services** (ADB, Select AI, Vector Search, OCI APIs) to AI Agents or Assistants via **MCP**
+- **Experiment with agentic workflows** (tool calling, chaining, reasoning) using **Python-based MCP servers**
+- **Validate architectural patterns** for running MCP servers on OCI (Compute, API Gateway, IAM, APM)
+- **Demonstrate end-to-end integrations** between OCI services and assistants like ChatGPT, Claude, or Copilot
+- **Assess security and observability approaches** (JWT, IAM, API Gateway, APM) before moving to a hardened production design
+
+You **should not** use this asset:
+- As a **drop-in production service** without additional hardening, reviews, and testing
+- When you only need **simple one-off scripts** without MCP, agent orchestration, or observability concerns
+
+In short: this asset is meant to **accelerate learning, validation, and architectural decisions** around MCP on OCI—not to replace a full production-grade platform.
 
 ## What is MCP?
 **MCP (Model Context Protocol)** is an **open-source standard** that lets AI models (e.g. LLMs or agents) connect bidirectionally with external tools, data sources, and services via a unified interface. 
@@ -26,6 +46,8 @@ MCP supports **dynamic discovery** of available tools and context, enabling:
 It’s quickly gaining traction: major players like OpenAI, Google DeepMind, Oracle are adopting it to make AI systems more composable and interoperable. 
 
 In today’s landscape of agentic AI, MCP is critical because it allows models to act meaningfully in real-world systems rather than remaining isolated black boxes.
+
+# How to use this asset?
 
 ## Develop MCP Servers in Python
 The easiest way is to use the [FastMCP](https://gofastmcp.com/getting-started/welcome) library.
@@ -107,3 +129,8 @@ How to Use:
 ## Integrate with OCI APM
 For more information, see [here](./docs/integrate_apm.md)
 
+
+## License
+
+Licensed under the **MIT** license.
+See [LICENSE](./LICENSE).

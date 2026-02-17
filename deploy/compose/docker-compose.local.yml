@@ -1,10 +1,10 @@
 services:
   mcp_consumption:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_consumption
     command: ["python", "mcp_servers/mcp_consumption.py", "--host", "0.0.0.0", "--port", "9500"]
     environment:
@@ -20,10 +20,10 @@ services:
 
   mcp_agenda:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_agenda
     command: ["python", "mcp_servers/mcp_agenda.py", "--host", "0.0.0.0", "--port", "8700"]
     environment:
@@ -37,10 +37,10 @@ services:
 
   mcp_internet_search:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_internet_search
     command: ["python", "mcp_servers/mcp_internet_search.py", "--host", "0.0.0.0", "--port", "8500"]
     environment:
@@ -56,10 +56,10 @@ services:
 
   mcp_semantic_search:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_semantic_search
     command: ["python", "mcp_servers/mcp_semantic_search_with_iam.py", "--host", "0.0.0.0", "--port", "9000"]
     environment:
@@ -81,10 +81,10 @@ services:
 
   mcp_employee:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_employee
     command: ["python", "mcp_servers/mcp_employee.py", "--host", "0.0.0.0", "--port", "8600"]
     environment:
@@ -98,12 +98,12 @@ services:
 
   mcp_aggregator:
     build:
-      context: .
+      context: ../..
       dockerfile: Dockerfile
       args:
-        REQUIREMENTS_FILE: requirements.docker-mcp-local.txt
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_aggregator
-    command: ["python", "mcp_aggregator.py", "--config", "aggregator_config.docker.yaml"]
+    command: ["python", "mcp_aggregator.py", "--config", "deploy/config/aggregator_config.docker.yaml"]
     environment:
       ENABLE_JWT_TOKEN: "true"
     depends_on:

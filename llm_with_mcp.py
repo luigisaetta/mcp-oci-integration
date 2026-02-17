@@ -61,7 +61,6 @@ from utils import get_console_logger
 from tracing_utils import setup_tracing, start_span
 
 from config import (
-    USE_LANGCHAIN_OPENAI,
     USERNAME,
     IAM_BASE_URL,
     ENABLE_JWT_TOKEN,

@@ -1,9 +1,15 @@
 .DS_Store # aggiungi ciò che ti serve
 config_private.py
+.env
+
+# for different environments
+*.luigi
+*.cig
+
+*.out
 
 # Python bytecode and cache
 *.pyc
 *.pyo
 *.pyd
 __pycache__/
-

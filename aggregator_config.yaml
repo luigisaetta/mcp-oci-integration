@@ -2,9 +2,13 @@
 
 # timeout on each http call to backend
 timeout_seconds: 60
+# call history persisted by mcp_aggregator (JSONL for Streamlit UI)
+call_log_path: "logs/mcp_aggregator_calls.jsonl"
+# in-memory ring size (for process-local diagnostics)
+call_log_max_in_memory: 2000
 
 # to manage jwt tokens
-enable_jwt_tokens: false
+enable_jwt_tokens: true
 iam_base_url: "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
 issuer: "https://identity.oraclecloud.com/"
 audience: ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
@@ -12,6 +16,8 @@ audience: ["urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"]
 # listen on
 host: 0.0.0.0
 port: 6000
+# URL used by UI to query aggregator tools remotely
+aggregator_url: "http://localhost:6000/mcp"
 
 # put true if you want: <backend>.<tool>
 use_namespace: false
@@ -20,17 +26,20 @@ use_namespace: false
 backends:
   - name: db_selectai
     url: "http://localhost:8000/mcp"
+    disabled: true
   # semantic search on Oracle Vector Store
   - name: search
     url: "http://localhost:9000/mcp"
   - name: internet_search
     url: "http://localhost:8500/mcp"
+    disabled: true
   # OCI consumption data
   - name : oci_consumption
     url: "http://localhost:9500/mcp"
   # Employee data
   - name: hr_employee
     url: "http://localhost:8600/mcp"
+    disabled: true
   # for garmin data analysis
   - name: sport_analysis
     url: "http://localhost:1234/mcp"
@@ -42,5 +51,13 @@ backends:
     url: "http://localhost:8700/mcp"
   - name: github
     url: "http://localhost:8900/mcp"
+    disabled: true
   - name: local_fs
     url: "http://localhost:8950/mcp"
+    disabled: true
+  - name: mcp_sport
+    url: "http://localhost:1111/mcp"
+    disabled: true
+  - name: genai-tracking
+    url: "http://localhost:1112/mcp"
+    disabled: true

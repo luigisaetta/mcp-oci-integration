@@ -1,0 +1,33 @@
+# Docker config for local MCP stack:
+# - mcp_consumption
+# - mcp_agenda
+# - mcp_internet_search
+# - mcp_semantic_search_with_iam
+# - mcp_employee
+# - mcp_aggregator (front door)
+
+timeout_seconds: 60
+
+enable_jwt_tokens: true
+iam_base_url: "https://idcs-930d7b2ea2cb46049963ecba3049f509.identity.oraclecloud.com"
+issuer: "https://identity.oraclecloud.com/"
+audience:
+  - "urn:opc:lbaas:logicalguid=idcs-930d7b2ea2cb46049963ecba3049f509"
+scope: "urn:opc:idm:__myscopes__"
+
+host: 0.0.0.0
+port: 6000
+
+use_namespace: true
+
+backends:
+  - name: oci_consumption
+    url: "http://mcp_consumption:9500/mcp"
+  - name: agenda
+    url: "http://mcp_agenda:8700/mcp"
+  - name: internet_search
+    url: "http://mcp_internet_search:8500/mcp"
+  - name: semantic_search
+    url: "http://mcp_semantic_search:9000/mcp"
+  - name: hr_employee
+    url: "http://mcp_employee:8600/mcp"

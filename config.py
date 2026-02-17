@@ -24,6 +24,7 @@ Notes:
 Warnings:
     This module is in development, may change in future versions.
 """
+
 import os
 from typing import List
 
@@ -80,7 +81,8 @@ AUTH = _env_str("AUTH", "API_KEY")
 # can be OCI or NVIDIA
 EMBED_MODEL_TYPE = _env_str("EMBED_MODEL_TYPE", "OCI")
 # EMBED_MODEL_TYPE = "NVIDIA"
-EMBED_MODEL_ID = _env_str("EMBED_MODEL_ID", "cohere.embed-multilingual-v3.0")
+# "cohere.embed-multilingual-v3.0"
+EMBED_MODEL_ID = _env_str("EMBED_MODEL_ID", "cohere.embed-v4.0")
 
 # this one needs to specify the dimension, default is 1536
 # EMBED_MODEL_ID = "cohere.embed-v4.0"
@@ -97,7 +99,7 @@ TOP_P = _env_float("TOP_P", 1.0)
 MAX_TOKENS = _env_int("MAX_TOKENS", 4000)
 
 # OCI general
-REGION = _env_str("REGION", "eu-frankfurt-1")
+REGION = _env_str("REGION", "us-chicago-1")
 # REGION = "us-chicago-1"
 
 # (11/12/2025) introduced to support the switch to langchain OpenAI integration

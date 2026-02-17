@@ -2,7 +2,7 @@
 
 These commands refer to:
 
-- `docker-compose.mcp-local.yml`
+- `deploy/compose/docker-compose.local.yml`
 
 Run them from the project root.
 
@@ -25,34 +25,34 @@ Then edit `.env` and set:
 ## Start
 
 ```bash
-docker compose -f docker-compose.mcp-local.yml up --build -d
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml up --build -d
 ```
 
 ## Stop and Remove
 
 ```bash
-docker compose -f docker-compose.mcp-local.yml down
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml down
 ```
 
 ## Show Running Services
 
 ```bash
-docker compose -f docker-compose.mcp-local.yml ps
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml ps
 ```
 
 ## Show Logs (All Services)
 
 ```bash
-docker compose -f docker-compose.mcp-local.yml logs -f
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f
 ```
 
 ## Show Logs (Single Service)
 
 ```bash
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_aggregator
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_consumption
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_agenda
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_internet_search
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_semantic_search
-docker compose -f docker-compose.mcp-local.yml logs -f mcp_employee
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_aggregator
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_consumption
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_agenda
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_internet_search
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_semantic_search
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_employee
 ```

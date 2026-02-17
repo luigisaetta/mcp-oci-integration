@@ -13,19 +13,24 @@ MCP Aggregator (HTTP-only, FastMCP v2)
 - added upport for disabled MCP (17/11/202)
 """
 
+import time
+import threading
 import asyncio
 import json
 import logging
-from typing import Dict, List, Optional, Callable
+from collections import deque
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Callable
 import argparse
 import yaml
 import httpx
-import time
-import threading
 
 # fastmcp >= 2.x (recommended >= 2.10.0)
 from fastmcp import FastMCP, Client
 from fastmcp.server.auth.providers.jwt import JWTVerifier
+
+from oci_jwt_client import OCIJWTClient
 
 
 def _make_cached_jwt_supplier(
@@ -43,7 +48,6 @@ def _make_cached_jwt_supplier(
     - If refresh fails but previous token is still before hard-expiry, reuse it.
     - If hard-expired and refresh fails, raise.
     """
-    from oci_jwt_client import OCIJWTClient
 
     lock = threading.Lock()
     client = None
@@ -104,6 +108,7 @@ class BearerTokenAuth(httpx.Auth):
         if token:
             request.headers["Authorization"] = f"Bearer {token}"
         yield request
+
 
 # ---------- DEBUG TOGGLE ----------
 # Set to True for verbose logging (DEBUG), False for quieter logs (INFO)
@@ -243,6 +248,163 @@ class Aggregator:
         #   "wrap": bool  # whether to wrap output as {"result": value}
         # }
         self.registry: Dict[str, dict] = {}
+        self.call_log_path: str = str(
+            cfg.get("call_log_path", "logs/mcp_aggregator_calls.jsonl")
+        )
+        self.call_log_max_in_memory: int = int(cfg.get("call_log_max_in_memory", 2000))
+        self.call_history = deque(maxlen=self.call_log_max_in_memory)
+        self.call_log_lock = threading.Lock()
+        self._prepare_call_log_file()
+        self._register_admin_tools()
+
+    def _register_admin_tools(self) -> None:
+        """
+        Register internal tools exposed by the aggregator itself.
+        """
+
+        async def mcp_aggregator_call_history(
+            limit: int = 300,
+            status: str | None = None,
+            exposed_tool: str | None = None,
+        ) -> Dict[str, Any]:
+            """
+            Return recent proxied call records (newest first).
+            """
+            safe_limit = max(1, min(int(limit), 5000))
+            with self.call_log_lock:
+                items = list(self.call_history)
+
+            items.reverse()
+            if status:
+                wanted = status.strip().lower()
+                items = [r for r in items if str(r.get("status", "")).lower() == wanted]
+            if exposed_tool:
+                needle = exposed_tool.strip()
+                items = [r for r in items if r.get("exposed_tool") == needle]
+
+            subset = items[:safe_limit]
+            return {"count": len(subset), "total": len(items), "items": subset}
+
+        self.server.tool(
+            name="mcp_aggregator_call_history",
+            description="Return recent call history captured by mcp_aggregator.",
+        )(mcp_aggregator_call_history)
+
+    def _prepare_call_log_file(self) -> None:
+        """
+        Ensure call log parent folder exists before first write.
+        """
+        try:
+            path = Path(self.call_log_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch(exist_ok=True)
+        except Exception as exc:
+            log_json(
+                event="call_log.init_error",
+                call_log_path=self.call_log_path,
+                error=str(exc),
+            )
+
+    @staticmethod
+    def _to_jsonable(value: Any) -> Any:
+        """
+        Best-effort conversion to JSON-compatible values.
+        """
+        try:
+            return json.loads(json.dumps(value, ensure_ascii=False, default=str))
+        except Exception:
+            return str(value)
+
+    @staticmethod
+    def _normalize_tool_result(res: Any) -> Any:
+        """
+        Normalize FastMCP result objects into a plain serializable value.
+        """
+        val = getattr(res, "data", None)
+        if val is None:
+            txt = getattr(res, "text", None)
+            if txt is not None and txt != "":
+                val = txt
+            else:
+                parts = getattr(res, "content", None) or []
+                texts = [
+                    getattr(p, "text", None)
+                    for p in parts
+                    if getattr(p, "text", None)
+                ]
+                val = "\n".join(texts) if texts else {"ok": True}
+        return val
+
+    def _append_call_record(self, record: Dict[str, Any]) -> None:
+        """
+        Store call records in memory and persist to JSONL file.
+        """
+        with self.call_log_lock:
+            self.call_history.append(record)
+            try:
+                with open(self.call_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            except Exception as exc:
+                log_json(
+                    event="call_log.write_error",
+                    call_log_path=self.call_log_path,
+                    error=str(exc),
+                )
+
+    async def _invoke_remote_tool(
+        self,
+        backend_url: str,
+        backend_name: str,
+        tool_name: str,
+        exposed_tool: str,
+        payload: Optional[dict],
+        wrap_result: bool,
+    ) -> Any:
+        """
+        Invoke a remote tool and record call timing + status.
+        """
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.perf_counter()
+        status = "ok"
+        error_message: Optional[str] = None
+
+        try:
+            async with Client(
+                backend_url, timeout=self.timeout, auth=self.backend_auth
+            ) as c:
+                res = await c.call_tool(tool_name, payload)
+            val = self._normalize_tool_result(res)
+            response = {"result": val} if wrap_result else val
+            if isinstance(response, dict) and "error" in response:
+                status = "ko"
+            return response
+        except Exception as exc:
+            status = "ko"
+            error_message = str(exc)
+            raise
+        finally:
+            duration_ms = round((time.perf_counter() - t0) * 1000, 2)
+            record = {
+                "timestamp": started_at,
+                "backend": backend_name,
+                "backend_url": backend_url,
+                "tool": tool_name,
+                "exposed_tool": exposed_tool,
+                "status": status,
+                "duration_ms": duration_ms,
+                "error": error_message,
+                "payload": self._to_jsonable(payload),
+            }
+            self._append_call_record(record)
+            log_json(
+                event="proxy.call",
+                backend=backend_name,
+                tool=tool_name,
+                exposed_tool=exposed_tool,
+                status=status,
+                duration_ms=duration_ms,
+                error=error_message,
+            )
 
     async def bootstrap(self) -> None:
         """
@@ -311,6 +473,7 @@ class Aggregator:
                     backend_url=backend_url,
                     backend_name=backend_name,
                     tool_name=remote_name,
+                    exposed_tool=exposed_name,
                     input_schema=in_schema,
                     wrap_result=wrap_result,
                 )
@@ -332,6 +495,7 @@ class Aggregator:
         backend_url: str,
         backend_name: str,
         tool_name: str,
+        exposed_tool: str,
         input_schema: Optional[dict],
         wrap_result: bool,
     ):
@@ -365,27 +529,15 @@ class Aggregator:
         if not input_schema or not isinstance(input_schema, dict):
 
             async def proxy(arguments: dict):
-                async with Client(
-                    backend_url, timeout=self.timeout, auth=self.backend_auth
-                ) as c:
-                    payload = arguments if arguments else None
-                    res = await c.call_tool(tool_name, payload)
-                # Normalize output
-                val = getattr(res, "data", None)
-                if val is None:
-                    txt = getattr(res, "text", None)
-                    if txt:
-                        val = txt
-                    else:
-                        parts = getattr(res, "content", None) or []
-                        texts = [
-                            getattr(p, "text", None)
-                            for p in parts
-                            if getattr(p, "text", None)
-                        ]
-                        val = "\n".join(texts) if texts else {"ok": True}
-                # Respect remote wrapping contract if requested
-                return {"result": val} if wrap_result else val
+                payload = arguments if arguments else None
+                return await self._invoke_remote_tool(
+                    backend_url=backend_url,
+                    backend_name=backend_name,
+                    tool_name=tool_name,
+                    exposed_tool=exposed_tool,
+                    payload=payload,
+                    wrap_result=wrap_result,
+                )
 
             log_json(
                 event="proxy.signature",
@@ -420,29 +572,18 @@ class Aggregator:
             body_lines.append(f"    if {name} is not None: args['{name}'] = {name}")
         body_lines += [
             "    payload = args if args else None",
-            "    async with Client(__backend_url, timeout=__timeout, auth=__auth) as c:",
-            "        res = await c.call_tool(__tool_name, payload)",
-            "    val = getattr(res, 'data', None)",
-            "    if val is None:",
-            "        txt = getattr(res, 'text', None)",
-            "        if txt is not None and txt != '':",
-            "            val = txt",
-            "        else:",
-            "            parts = getattr(res, 'content', None) or []",
-            "            texts = [getattr(p, 'text', None) for p in parts if getattr(p, 'text', None)]",
-            "            val = '\\n'.join(texts) if texts else {'ok': True}",
-            "    return {'result': val} if __wrap_result else val",
+            "    return await __invoke(__backend_url, __backend_name, __tool_name, __exposed_tool, payload, __wrap_result)",
         ]
         src = "async def proxy(" + signature + "):\n" + "\n".join(body_lines)
 
         # Make `__backend_url`, `__tool_name`, `__timeout`, `__wrap_result` available as globals
         glb = {
-            "Client": Client,
+            "__invoke": self._invoke_remote_tool,
             "__backend_url": backend_url,
+            "__backend_name": backend_name,
             "__tool_name": tool_name,
-            "__timeout": self.timeout,
+            "__exposed_tool": exposed_tool,
             "__wrap_result": wrap_result,
-            "__auth": self.backend_auth,
         }
         lcl = {}
         exec(src, glb, lcl)
