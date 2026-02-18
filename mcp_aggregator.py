@@ -18,6 +18,7 @@ import threading
 import asyncio
 import json
 import logging
+import os
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
@@ -208,7 +209,20 @@ class Aggregator:
         if not self.backends_cfg:
             raise RuntimeError("config.yaml: 'backends' section is missing or empty")
 
-        if cfg.get("enable_jwt_tokens", False):
+        enable_jwt_cfg = bool(cfg.get("enable_jwt_tokens", False))
+        enable_jwt_env = os.getenv("ENABLE_JWT_TOKEN")
+        if enable_jwt_env is None:
+            enable_jwt_tokens = enable_jwt_cfg
+        else:
+            enable_jwt_tokens = enable_jwt_env.strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "y",
+                "on",
+            }
+
+        if enable_jwt_tokens:
             # config to check that a valid JWT token is provided
             iam_base_url = cfg.get("iam_base_url", "").strip().rstrip("/")
             issuer = cfg.get("issuer", "")

@@ -1,4 +1,4 @@
-.DS_Store # aggiungi ciò che ti serve
+.DS_Store 
 config_private.py
 .env
 

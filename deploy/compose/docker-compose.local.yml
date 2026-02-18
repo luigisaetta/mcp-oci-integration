@@ -11,7 +11,7 @@ services:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
       PORT: 9500
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
     ports:
       - "9500:9500"
     volumes:
@@ -30,7 +30,7 @@ services:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
       PORT: 8700
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
     ports:
       - "8700:8700"
     restart: unless-stopped
@@ -47,7 +47,7 @@ services:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
       PORT: 8500
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
     ports:
       - "8500:8500"
     volumes:
@@ -66,7 +66,7 @@ services:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
       PORT: 9000
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
       VECTOR_DB_USER: "${VECTOR_DB_USER:?set in .env}"
       VECTOR_DB_PWD: "${VECTOR_DB_PWD:?set in .env}"
       VECTOR_WALLET_PWD: "${VECTOR_WALLET_PWD:?set in .env}"
@@ -91,7 +91,7 @@ services:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
       PORT: 8600
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
     ports:
       - "8600:8600"
     restart: unless-stopped
@@ -105,7 +105,7 @@ services:
     container_name: mcp_aggregator
     command: ["python", "mcp_aggregator.py", "--config", "deploy/config/aggregator_config.docker.yaml"]
     environment:
-      ENABLE_JWT_TOKEN: "true"
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
     depends_on:
       - mcp_consumption
       - mcp_agenda
