@@ -12,10 +12,11 @@ services:
       HOST: 0.0.0.0
       PORT: 9500
       ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      OCI_CONFIG_FILE: /root/.oci/config
     ports:
       - "9500:9500"
     volumes:
-      - ${HOME}/.oci:/root/.oci:ro
+      - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
     restart: unless-stopped
 
   mcp_agenda:
@@ -48,10 +49,11 @@ services:
       HOST: 0.0.0.0
       PORT: 8500
       ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      OCI_CONFIG_FILE: /root/.oci/config
     ports:
       - "8500:8500"
     volumes:
-      - ${HOME}/.oci:/root/.oci:ro
+      - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
     restart: unless-stopped
 
   mcp_semantic_search:
@@ -67,6 +69,7 @@ services:
       HOST: 0.0.0.0
       PORT: 9000
       ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      OCI_CONFIG_FILE: /root/.oci/config
       VECTOR_DB_USER: "${VECTOR_DB_USER:?set in .env}"
       VECTOR_DB_PWD: "${VECTOR_DB_PWD:?set in .env}"
       VECTOR_WALLET_PWD: "${VECTOR_WALLET_PWD:?set in .env}"
@@ -76,7 +79,7 @@ services:
       - "9000:9000"
     volumes:
       - ${VECTOR_WALLET_DIR_HOST:?set in .env}:/opt/oci/wallet:ro
-      - ${HOME}/.oci:/root/.oci:ro
+      - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
     restart: unless-stopped
 
   mcp_employee:
@@ -106,6 +109,7 @@ services:
     command: ["python", "mcp_aggregator.py", "--config", "deploy/config/aggregator_config.docker.yaml"]
     environment:
       ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      OCI_CONFIG_FILE: /root/.oci/config
     depends_on:
       - mcp_consumption
       - mcp_agenda
@@ -115,5 +119,5 @@ services:
     ports:
       - "6000:6000"
     volumes:
-      - ${HOME}/.oci:/root/.oci:ro
+      - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
     restart: unless-stopped
