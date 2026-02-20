@@ -23,7 +23,6 @@ Each server exposes a focused set of tools and handles a specific function. They
 - **[`mcp_selectai.py`](./mcp_selectai.py)**  
   Provide Text-to-SQL capabilities using Oracle Autonomous Database SelectAI.
 
-- **[`mcp_semantic_search_with_iam.py`](./mcp_semantic_search_with_iam.py)**  
+- **[`mcp_semantic_search.py`](./mcp_semantic_search.py)**  
   Execute semantic search over Oracle Database 23c/26AI using OCI GenAI embeddings and IAM-secured access.
-
 

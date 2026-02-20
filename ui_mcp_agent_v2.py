@@ -20,6 +20,7 @@ from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 from llm_with_mcp import AgentWithMCP, default_jwt_supplier
+from citation_utils import extract_citations_from_metadata, render_citations_markdown
 from utils import get_console_logger
 
 logger = get_console_logger()
@@ -173,6 +174,9 @@ for msg in st.session_state.chat:
 
     with st.chat_message(role):
         st.write(msg.get("content", ""))
+        citations = msg.get("citations") or []
+        if citations:
+            st.markdown(render_citations_markdown(citations))
 
 
 # ---------- Streaming logic ----------
@@ -231,11 +235,20 @@ def run_query_with_streaming(prompt: str):
                 answer_text = ev.get("answer", "") or ""
                 # Escape $ to avoid LaTeX interpretation
                 answer_text = answer_text.replace("$", "\\$")
+                final_metadata = ev.get("metadata", {}) or {}
+                citations = extract_citations_from_metadata(final_metadata)
 
                 final_answer_placeholder.markdown(answer_text)
-                history.append({"role": "assistant", "content": answer_text})
+                if citations:
+                    assistant_container.markdown(render_citations_markdown(citations))
+                history.append(
+                    {
+                        "role": "assistant",
+                        "content": answer_text,
+                        "citations": citations,
+                    }
+                )
 
-                final_metadata = ev.get("metadata", {}) or {}
                 st.session_state.last_metadata = final_metadata
 
             else:

@@ -28,6 +28,10 @@ Then edit `.env` and set:
 docker compose --env-file .env -f deploy/compose/docker-compose.local.yml up --build -d
 ```
 
+UI endpoint:
+
+- `http://localhost:8194` (served by `nginx_streamlit`, proxying to `mcp_ui_v2`)
+
 ## Stop and Remove
 
 ```bash
@@ -55,4 +59,5 @@ docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -
 docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_internet_search
 docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_semantic_search
 docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f mcp_employee
+docker compose --env-file .env -f deploy/compose/docker-compose.local.yml logs -f nginx_streamlit
 ```

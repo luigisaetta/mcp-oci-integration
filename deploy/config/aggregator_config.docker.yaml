@@ -2,7 +2,7 @@
 # - mcp_consumption
 # - mcp_agenda
 # - mcp_internet_search
-# - mcp_semantic_search_with_iam
+# - mcp_semantic_search
 # - mcp_employee
 # - mcp_aggregator (front door)
 

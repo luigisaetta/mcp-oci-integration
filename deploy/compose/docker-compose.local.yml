@@ -63,7 +63,7 @@ services:
       args:
         REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
     container_name: mcp_semantic_search
-    command: ["python", "mcp_servers/mcp_semantic_search_with_iam.py", "--host", "0.0.0.0", "--port", "9000"]
+    command: ["python", "mcp_servers/mcp_semantic_search.py", "--host", "0.0.0.0", "--port", "9000"]
     environment:
       TRANSPORT: streamable-http
       HOST: 0.0.0.0
@@ -120,4 +120,44 @@ services:
       - "6000:6000"
     volumes:
       - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
+    restart: unless-stopped
+
+  mcp_ui_v2:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: deploy/docker/requirements.mcp-local.txt
+    container_name: mcp_ui_v2
+    command:
+      [
+        "streamlit",
+        "run",
+        "ui_mcp_agent_v2.py",
+        "--server.address",
+        "0.0.0.0",
+        "--server.port",
+        "8194",
+      ]
+    environment:
+      ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      MCP_DEFAULT_URL: "http://mcp_aggregator:6000/mcp"
+      OCI_CONFIG_FILE: /root/.oci/config
+    depends_on:
+      - mcp_aggregator
+    expose:
+      - "8194"
+    volumes:
+      - ${OCI_CONFIG_DIR:-${HOME}/.oci}:/root/.oci:ro
+    restart: unless-stopped
+
+  nginx_streamlit:
+    image: nginx:1.27-alpine
+    container_name: nginx_streamlit
+    depends_on:
+      - mcp_ui_v2
+    ports:
+      - "8194:80"
+    volumes:
+      - ../nginx/streamlit.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped

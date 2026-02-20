@@ -96,7 +96,7 @@ NVIDIA_EMBED_MODEL_URL = _env_str("NVIDIA_EMBED_MODEL_URL", "")
 LLM_MODEL_ID = _env_str("LLM_MODEL_ID", "openai.gpt-oss-120b")
 TEMPERATURE = _env_float("TEMPERATURE", 0.0)
 TOP_P = _env_float("TOP_P", 1.0)
-MAX_TOKENS = _env_int("MAX_TOKENS", 4000)
+MAX_TOKENS = _env_int("MAX_TOKENS", 6000)
 
 # OCI general
 REGION = _env_str("REGION", "us-chicago-1")
@@ -105,7 +105,6 @@ REGION = _env_str("REGION", "us-chicago-1")
 # (11/12/2025) introduced to support the switch to langchain OpenAI integration
 USE_LANGCHAIN_OPENAI = _env_bool("USE_LANGCHAIN_OPENAI", False)
 
-# REGION = "us-chicago-1"
 SERVICE_ENDPOINT = _env_str(
     "SERVICE_ENDPOINT", f"https://inference.generativeai.{REGION}.oci.oraclecloud.com"
 )
@@ -113,10 +112,10 @@ SERVICE_ENDPOINT = _env_str(
 if REGION == "us-chicago-1":
     # for now only available in chicago region
     model_list_default = [
-        "xai.grok-4-1-fast-reasoning",
-        "openai.gpt-5.2",
         "openai.gpt-oss-120b",
         "google.gemini-2.5-pro",
+        "xai.grok-4-1-fast-reasoning",
+        "openai.gpt-5.2",
     ]
 else:
     model_list_default = ["openai.gpt-oss-120b", "google.gemini-2.5-pro"]

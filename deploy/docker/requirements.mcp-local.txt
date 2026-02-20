@@ -9,3 +9,9 @@ langchain-oracledb==1.2.0
 openai==2.15.0
 oci-openai==1.0.0
 oracledb==3.4.2
+streamlit==1.49.1
+pypdf==6.7.0
+opentelemetry-api==1.38.0
+opentelemetry-sdk==1.38.0
+opentelemetry-exporter-otlp==1.38.0
+opentelemetry-exporter-otlp-proto-http==1.38.0

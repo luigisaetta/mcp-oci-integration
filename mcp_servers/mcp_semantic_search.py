@@ -1,5 +1,5 @@
 """
-File name: mcp_semantic_search_with_iam.py
+File name: mcp_semantic_search.py
 Author: Luigi Saetta
 Date last modified: 2025-12-04
 Python Version: 3.11
@@ -12,10 +12,10 @@ Description:
 Usage:
     Import this module to use its tools or run it as a standalone MCP server.
     Example:
-        from mcp_servers.mcp_semantic_search_with_iam import search
+        from mcp_servers.mcp_semantic_search import search
 
         results = search("query text", "BOOKS")
-        # Or run the server: python mcp_semantic_search_with_iam.py
+        # Or run the server: python mcp_semantic_search.py
 
 License:
     This code is released under the MIT License.
@@ -29,7 +29,7 @@ Warnings:
     and handle potential errors related to vector store connections or query limits.
 """
 
-from typing import Annotated
+from typing import Annotated, Any
 from pydantic import Field
 
 from fastmcp.server.dependencies import get_http_headers
@@ -59,6 +59,14 @@ def log_headers():
     if DEBUG:
         headers = get_http_headers(include_all=True)
         logger.info("Headers: %s", headers)
+
+
+def rerank_documents(query: str, docs: list[Any]) -> list[Any]:
+    """
+    Rerank documents for a given query.
+    This is a placeholder hook for future reranker integration.
+    """
+    return docs
 
 
 #
@@ -138,7 +146,9 @@ def search(
             )
             relevant_docs = v_store.similarity_search(query=query, k=TOP_K)
 
-            # we can add here a reranking step if needed
+            # added stub for reranking, 
+            # in case we want to add a more complex reranker in the future (e.g. using a LLM)
+            relevant_docs = rerank_documents(query=query, docs=relevant_docs)
 
             if DEBUG:
                 logger.info("Result from the similarity search:")

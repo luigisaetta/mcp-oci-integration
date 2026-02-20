@@ -15,6 +15,7 @@ from mcp_servers_config import MCP_SERVERS_CONFIG
 # this one contains the backend and the test code only for console
 from llm_with_mcp import AgentWithMCP, default_jwt_supplier
 
+from citation_utils import extract_citations_from_metadata, render_citations_markdown
 from utils import get_console_logger
 
 logger = get_console_logger()
@@ -189,6 +190,9 @@ for msg in st.session_state.chat:
 
     with st.chat_message(role):
         st.write(msg.get("content", ""))
+        citations = msg.get("citations") or []
+        if citations:
+            st.markdown(render_citations_markdown(citations))
 
 # ---------- Input box ----------
 prompt = st.chat_input("Ask your question…")
@@ -218,12 +222,18 @@ if prompt:
                     ANSWER = ANSWER.replace("$", "\\$")
 
                     answer_metadata = answer_dict.get("metadata", {})
+                    citations = extract_citations_from_metadata(answer_metadata)
                 except Exception as e:
                     ANSWER = f"Error: {e}"
+                    citations = []
                     logger.error(e)
 
                 st.write(ANSWER)
-                st.session_state.chat.append({"role": "assistant", "content": ANSWER})
+                if citations:
+                    st.markdown(render_citations_markdown(citations))
+                st.session_state.chat.append(
+                    {"role": "assistant", "content": ANSWER, "citations": citations}
+                )
 
 # ---------- The small debug panel in the bottom ----------
 with st.expander("🔎 Debug / State"):
