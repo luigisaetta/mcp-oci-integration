@@ -72,7 +72,7 @@ langchain-openai==1.1.7
 langchain-oracledb==1.2.0
 langchain-text-splitters==1.0.0
 langgraph==1.0.4
-langgraph-checkpoint==2.1.1
+langgraph-checkpoint==3.0.1
 langgraph-prebuilt==1.0.5
 langgraph-sdk==0.2.6
 langsmith==0.4.27
