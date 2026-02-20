@@ -1,4 +1,24 @@
 services:
+  citation_image_server:
+    image: python:3.11-slim
+    container_name: citation_image_server
+    command:
+      [
+        "python",
+        "-m",
+        "http.server",
+        "8008",
+        "--bind",
+        "0.0.0.0",
+        "--directory",
+        "/data/citations",
+      ]
+    ports:
+      - "${CITATION_SERVER_BIND_IP:-0.0.0.0}:${CITATION_SERVER_PORT:-8008}:8008"
+    volumes:
+      - ${CITATION_DIR_ROOT_HOST:?set in .env}:/data/citations:ro
+    restart: unless-stopped
+
   mcp_consumption:
     build:
       context: ../..
@@ -141,6 +161,7 @@ services:
       ]
     environment:
       ENABLE_JWT_TOKEN: "${ENABLE_JWT_TOKEN:-false}"
+      CITATION_BASE_URL: "${CITATION_BASE_URL:-http://127.0.0.1:8008/}"
       MCP_DEFAULT_URL: "http://mcp_aggregator:6000/mcp"
       OCI_CONFIG_FILE: /root/.oci/config
     depends_on:

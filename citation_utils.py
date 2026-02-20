@@ -4,12 +4,20 @@ Utilities to extract and format citations from tool metadata.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 from urllib.parse import quote
 
 
-CITATION_BASE_URL = "http://127.0.0.1:8008/"
+def _citation_base_url() -> str:
+    base = os.getenv("CITATION_BASE_URL", "http://127.0.0.1:8008/").strip()
+    if not base.endswith("/"):
+        base = f"{base}/"
+    return base
+
+
+CITATION_BASE_URL = _citation_base_url()
 
 _DOC_KEYS = ("document_name", "source")
 _PAGE_KEYS = ("page_label", "page_number", "page")

@@ -73,11 +73,15 @@ Set at least these variables (required by compose):
 - `VECTOR_WALLET_PWD`
 - `VECTOR_DSN`
 - `VECTOR_WALLET_DIR_HOST` (absolute path on the Ubuntu server)
+- `CITATION_DIR_ROOT_HOST` (absolute path on the Ubuntu server for citation PNG files)
 
 Also add these recommended deployment variables:
 
 - `ENABLE_JWT_TOKEN=true` or `false`
 - `OCI_CONFIG_DIR=/home/<user>/.oci`
+- `CITATION_SERVER_BIND_IP=0.0.0.0`
+- `CITATION_SERVER_PORT=8008`
+- `CITATION_BASE_URL=http://<SERVER_PUBLIC_IP_OR_DNS>:8008/`
 
 Example `.env`:
 
@@ -87,9 +91,13 @@ VECTOR_DB_PWD=...
 VECTOR_WALLET_PWD=...
 VECTOR_DSN=...
 VECTOR_WALLET_DIR_HOST=/opt/oci/wallet
+CITATION_DIR_ROOT_HOST=/Users/lsaetta/Progetti/work-iren/pages
 
 ENABLE_JWT_TOKEN=true
 OCI_CONFIG_DIR=/home/ubuntu/.oci
+CITATION_SERVER_BIND_IP=0.0.0.0
+CITATION_SERVER_PORT=8008
+CITATION_BASE_URL=http://203.0.113.10:8008/
 ```
 
 ### 4.2 `config_private.py`
@@ -158,6 +166,20 @@ sudo chown -R $USER:$USER /opt/oci/wallet
 # copy wallet files here
 ```
 
+### 4.5 Citation PNG root directory
+
+Ensure `CITATION_DIR_ROOT_HOST` points to a directory with this structure:
+
+`<DOC_NAME_NO_PDF>/pageNNNN.png`
+
+Example:
+
+```bash
+sudo mkdir -p /Users/lsaetta/Progetti/work-iren/pages
+sudo chown -R $USER:$USER /Users/lsaetta/Progetti/work-iren/pages
+# copy citation PNG folders/files here
+```
+
 ## 5. How JWT is decided
 
 In compose, this is set as:
@@ -180,6 +202,7 @@ Main endpoints:
 
 - UI via nginx: `http://<SERVER_IP>:8194`
 - MCP aggregator: `http://<SERVER_IP>:6000/mcp`
+- Citation images server: `http://<SERVER_IP>:8008/`
 
 ## 7. Quick checks
 
@@ -222,12 +245,14 @@ Open at least:
 
 - `8194/tcp` (UI)
 - optional `6000/tcp` if you want direct external access to the aggregator
+- `8008/tcp` (citation image server)
 
 UFW example:
 
 ```bash
 sudo ufw allow 8194/tcp
 sudo ufw allow 6000/tcp
+sudo ufw allow 8008/tcp
 sudo ufw enable
 sudo ufw status
 ```
@@ -238,6 +263,7 @@ sudo ufw status
 - JWT appears disabled: set `ENABLE_JWT_TOKEN=true` in `.env` and restart.
 - OCI auth errors: verify `OCI_CONFIG_DIR` mount and `~/.oci/config` contents.
 - DB wallet errors: verify `VECTOR_WALLET_DIR_HOST` path and wallet files.
+- Citation links not reachable: verify `CITATION_BASE_URL`, `CITATION_DIR_ROOT_HOST`, and firewall rule for port `8008`.
 - `config_private` import crash: file missing or required fields not defined.
 
 ## 11. Production hardening suggestions

@@ -67,6 +67,31 @@ In the Streamlit application, you can:
 
 In [llm_with_mcp.py](./llm_with_mcp.py) there is the complete implementation of the **tool-calling** loop.
 
+## Docker Compose local stack (including citation images server)
+
+The local compose stack now includes a simple Python static web server for citation PNG images.
+
+- Service: `citation_image_server`
+- Container port: `8008`
+- Host binding: configurable through `.env`
+- Root directory served: configurable through `.env`
+
+Required `.env` variables (in addition to DB/wallet variables):
+
+- `CITATION_DIR_ROOT_HOST`: absolute host path containing citation images
+- `CITATION_SERVER_BIND_IP`: host bind IP (default `0.0.0.0`)
+- `CITATION_SERVER_PORT`: host bind port (default `8008`)
+- `CITATION_BASE_URL`: base URL used to generate citation links in UI
+
+Examples:
+
+- Local Mac test:
+  - `CITATION_SERVER_BIND_IP=0.0.0.0`
+  - `CITATION_BASE_URL=http://127.0.0.1:8008/`
+- Ubuntu VM test (access from another machine):
+  - `CITATION_SERVER_BIND_IP=0.0.0.0`
+  - `CITATION_BASE_URL=http://<VM_PUBLIC_IP_OR_DNS>:8008/`
+
 ## Semantic Search
 In this repository there is a **complete implementation of an MCP server** implementing **Semantic Search** on top of **Oracle 23AI**.
 To use it, you need only:
