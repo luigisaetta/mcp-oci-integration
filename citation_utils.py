@@ -111,13 +111,26 @@ def render_citations_markdown(citations: List[Dict[str, Any]]) -> str:
     """
     Build a markdown section with clickable links.
     """
+    return render_citations_markdown_i18n(citations, lang="en")
+
+
+def render_citations_markdown_i18n(citations: List[Dict[str, Any]], lang: str) -> str:
+    """
+    Build a markdown section with clickable links, localized for simple UI needs.
+    Supported languages: "en", "it".
+    """
     if not citations:
         return ""
 
-    lines = ["## Citations"]
+    lang = (lang or "en").strip().lower()
+    is_it = lang.startswith("it")
+    title = "## Citazioni" if is_it else "## Citations"
+    page_label = "pagina" if is_it else "page"
+
+    lines = [title]
     for c in citations:
         doc = c["document_name"]
         page = c["page_number"]
         url = c["url"]
-        lines.append(f"- [{doc} - page {page}]({url})")
+        lines.append(f"- [{doc} - {page_label} {page}]({url})")
     return "\n".join(lines)

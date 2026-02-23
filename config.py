@@ -176,8 +176,8 @@ OCI_APM_TRACES_URL = _env_str(
     "https://aaaadec2jjn3maaaaaaaaach4e.apm-agt.eu-frankfurt-1.oci.oraclecloud.com/20200101/opentelemetry/private/v1/traces",
 )
 
-# UI
-UI_TITLE = _env_str("UI_TITLE", "🛠️ AI Assistant powered by MCP")
+# UI title
+UI_TITLE = _env_str("UI_TITLE", "🛠️ AI Assistant")
 
 # Agent API
 AGENT_API_HOST = _env_str("AGENT_API_HOST", "0.0.0.0")

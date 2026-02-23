@@ -3,6 +3,7 @@ Streamlit UI for MCP servers
 """
 
 import asyncio
+import os
 import traceback
 import streamlit as st
 
@@ -15,7 +16,10 @@ from mcp_servers_config import MCP_SERVERS_CONFIG
 # this one contains the backend and the test code only for console
 from llm_with_mcp import AgentWithMCP, default_jwt_supplier
 
-from citation_utils import extract_citations_from_metadata, render_citations_markdown
+from citation_utils import (
+    extract_citations_from_metadata,
+    render_citations_markdown_i18n,
+)
 from utils import get_console_logger
 
 logger = get_console_logger()
@@ -31,6 +35,23 @@ def get_username():
     """Get the authenticated username from Streamlit headers, if available."""
     headers = st.context.headers
     return headers.get("X-Auth-User")
+
+
+def get_ui_lang() -> str:
+    """
+    Resolve UI language:
+    1) UI_LANG env var ("it" / "en")
+    2) Browser Accept-Language
+    3) fallback "en"
+    """
+    env_lang = (os.getenv("UI_LANG", "") or "").strip().lower()
+    if env_lang in {"it", "en"}:
+        return env_lang
+
+    accept = (st.context.headers.get("Accept-Language", "") or "").lower()
+    if accept.startswith("it") or ",it" in accept:
+        return "it"
+    return "en"
 
 
 # NEW: PDF -> text (no OCR)
@@ -142,6 +163,7 @@ answer_metadata = {}
 
 # read the username (if present)
 USER = get_username()
+UI_LANG = get_ui_lang()
 logger.info("Authenticated user: %s", USER)
 
 
@@ -192,7 +214,7 @@ for msg in st.session_state.chat:
         st.write(msg.get("content", ""))
         citations = msg.get("citations") or []
         if citations:
-            st.markdown(render_citations_markdown(citations))
+            st.markdown(render_citations_markdown_i18n(citations, UI_LANG))
 
 # ---------- Input box ----------
 prompt = st.chat_input("Ask your question…")
@@ -230,7 +252,7 @@ if prompt:
 
                 st.write(ANSWER)
                 if citations:
-                    st.markdown(render_citations_markdown(citations))
+                    st.markdown(render_citations_markdown_i18n(citations, UI_LANG))
                 st.session_state.chat.append(
                     {"role": "assistant", "content": ANSWER, "citations": citations}
                 )

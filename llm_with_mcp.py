@@ -10,7 +10,7 @@ Description:
 
 Usage:
     Import this module and call its functions, e.g.:
-        from llm_with_mcp import run, run_streaming
+        from llm_with_mcp import run
 
 License:
     MIT License
@@ -38,6 +38,7 @@ Updates:
 import json
 import asyncio
 import logging
+import re
 from typing import List, Dict, Any, Callable, Sequence, Optional, TypedDict, Literal
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -88,8 +89,8 @@ TIMEOUT = 60
 SCOPE = "urn:opc:idm:__myscopes__"
 
 DEFAULT_MODEL_ID = "xai.grok-4"
-
 QUEUE_TIMEOUT = 0.1
+
 # ---- Config ----
 
 # eventually you can taylor the SYSTEM prompt here
@@ -136,6 +137,45 @@ def default_jwt_supplier() -> Optional[str]:
 
 # mappings for schema to pyd
 _JSON_TO_PY = {"string": str, "integer": int, "number": float, "boolean": bool}
+
+
+def _sanitize_tool_name(name: str) -> str:
+    """
+    OCI tool/function names must match ^[a-zA-Z0-9_-]+$.
+    Replace unsupported chars (e.g. dots in namespaced tools) with "_".
+    """
+    cleaned = re.sub(r"[^a-zA-Z0-9_-]", "_", (name or "").strip())
+    return cleaned or "tool"
+
+
+def sanitize_tool_schema_titles(
+    schemas: List[Dict[str, Any]],
+) -> tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """
+    Return:
+      - schemas with OCI-safe top-level `title` (tool name)
+      - alias map: safe_name -> original_name
+    """
+    safe_schemas: List[Dict[str, Any]] = []
+    alias_to_original: Dict[str, str] = {}
+    used: set[str] = set()
+
+    for s in schemas:
+        original_name = str(s.get("title", "tool"))
+        base = _sanitize_tool_name(original_name)
+        safe_name = base
+        idx = 2
+        while safe_name in used:
+            safe_name = f"{base}_{idx}"
+            idx += 1
+        used.add(safe_name)
+        alias_to_original[safe_name] = original_name
+
+        normalized = dict(s)
+        normalized["title"] = safe_name
+        safe_schemas.append(normalized)
+
+    return safe_schemas, alias_to_original
 
 
 # patch for OpenAI, xAI
@@ -204,6 +244,7 @@ class AgentWithMCP:
         self.timeout = timeout
         self.llm = llm
         self.model_with_tools = None
+        self.tool_name_aliases: Dict[str, str] = {}
 
         self.logger = logger
 
@@ -281,6 +322,7 @@ class AgentWithMCP:
             tools = []
 
         schemas = [self._tool_to_schema(t) for t in tools]
+        schemas, self.tool_name_aliases = sanitize_tool_schema_titles(schemas)
 
         # wrapped with schemas_to_pyd to solve compatibility issues with non-cohere models
         pyd_models = schemas_to_pydantic_models(schemas)
@@ -347,6 +389,12 @@ class AgentWithMCP:
             self.logger.info("Invoking LLM...")
 
             return await self.model_with_tools.ainvoke(messages)
+
+    def _resolve_tool_name(self, emitted_name: str) -> str:
+        """
+        Convert OCI-safe tool alias emitted by the LLM back to the original MCP tool name.
+        """
+        return self.tool_name_aliases.get(emitted_name, emitted_name)
 
     #
     # ---------- main loop ----------
@@ -421,7 +469,8 @@ class AgentWithMCP:
 
                 # Execute tool calls and append ToolMessage for each
                 for tc in tool_calls:
-                    name = tc["name"]
+                    emitted_name = tc["name"]
+                    name = self._resolve_tool_name(emitted_name)
                     args = tc.get("args") or {}
 
                     # Defensive: ensure we always have a non-empty string id
@@ -460,7 +509,7 @@ class AgentWithMCP:
                                 content=tool_content,
                                 # changed for Gemini compatibility
                                 tool_call_id=call_id,
-                                name=name,
+                                name=emitted_name,
                             )
                             messages.append(tm)
                             tool_names.append(name)
@@ -491,7 +540,7 @@ class AgentWithMCP:
                             ToolMessage(
                                 content=json.dumps(error_payload),
                                 tool_call_id=call_id,
-                                name=name,
+                                name=emitted_name,
                             )
                         )
 
@@ -561,42 +610,9 @@ class AgentWithMCP:
 
     async def answer_streaming(self, question: str, history: Optional[list] = None):
         """
-        Execute the full LLM + MCP interaction loop in streaming mode.
-
-        This method behaves like `answer`, but instead of returning a single
-        final result, it yields structured events throughout the execution
-        via an async generator.
-
-        Event sequence:
-
-        1. `start`
-            Emitted immediately, containing the user question:
-                {"type": "start", "question": <str>}
-
-        2. During the MCP tool-calling loop:
-            - `tool_call`
-                {"type": "tool_call", "tool": <name>, "args": <dict>}
-            - `tool_result`
-                {"type": "tool_result", "tool": <name>, "args": <dict>, "payload": <any>}
-            - `tool_error`
-                {"type": "tool_error", "tool": <name>, "args": <dict>, "payload": <str>}
-
-            These events are emitted in real time as the LLM requests tools and the MCP
-            server executes them.
-
-        3. Final event:
-            - `final_answer`
-                {"type": "final_answer", "answer": <str>, "metadata": <dict>}
-
-        Notes:
-        - Only tool-related events are streamed in real time.
-        - The final answer is produced only after `_run_tool_loop` has fully completed.
-        - The complete answer is sent in a single `final_answer` event.
-        - This interface is designed to be consumed by UI frameworks (e.g., Streamlit)
-          or any synchronous code through `run_streaming_sync`.
+        Streaming events for tool activity + single final answer event.
+        This does NOT stream answer chunks token-by-token.
         """
-
-        # 1) Immediate start event
         start_event: StreamEvent = {
             "type": "start",
             "question": question,
@@ -607,25 +623,21 @@ class AgentWithMCP:
         if history is None:
             history = []
 
-        # 2) Build initial messages (same as in answer())
         messages = self._build_messages(
             history=history,
             system_prompt=build_system_prompt(),
             current_user_prompt=question,
         )
 
-        # 3) Queue for events emitted by the tool loop
         queue: asyncio.Queue[StreamEvent] = asyncio.Queue()
         loop_done = asyncio.Event()
         final_ai: Optional[AIMessage] = None
         final_metadata: Dict[str, Any] = {}
         loop_error: Optional[Exception] = None
 
-        # 4) event_handler used by _run_tool_loop
         def handler(ev: StreamEvent):
             queue.put_nowait(ev)
 
-        # 5) Async task that runs the core loop
         async def _run_loop_task():
             nonlocal final_ai, final_metadata, loop_error
             try:
@@ -641,9 +653,7 @@ class AgentWithMCP:
 
         loop_task = asyncio.create_task(_run_loop_task())
 
-        # 6) Consume events from the queue as they arrive
         while True:
-            # exit condition: loop finished and queue is empty
             if loop_done.is_set() and queue.empty():
                 break
 
@@ -655,25 +665,19 @@ class AgentWithMCP:
                 continue
 
             ev_type = ev.get("type")
-
             if ev_type != "tool_result":
                 logger.info("STREAMING EVENT (%s): %s", ev_type, ev)
             else:
-                # reduced logging
                 logger.info("STREAMING EVENT (%s)...", ev_type)
 
             yield ev
 
-        # 7) Ensure the tool loop task is done
         await loop_task
 
-        # Propagate failure if the loop raised
         if loop_error is not None:
             raise loop_error
 
-        # 8) Emit a single final_answer event
         full_answer = final_ai.content if final_ai is not None else ""
-
         final_event: StreamEvent = {
             "type": "final_answer",
             "answer": full_answer,
@@ -753,12 +757,7 @@ async def run(question: str, history):
 
 async def run_streaming(question: str, history):
     """
-    Streaming wrapper for the agent.
-
-    Currently:
-    - creates the agent
-    - delegates to `answer_streaming`
-    - exposes an async generator of events
+    Streaming wrapper for tool events + final answer event.
     """
     agent = await AgentWithMCP.create()
 
@@ -772,19 +771,7 @@ def run_streaming_sync(
     on_event: Callable[[StreamEvent], None],
 ) -> None:
     """
-    Synchronous wrapper around the async streaming API.
-
-    Usage pattern (e.g. in Streamlit or any sync code):
-
-        def handle_event(ev: StreamEvent):
-            # update UI, print, etc.
-            ...
-
-        run_streaming_sync("ciao", history=[], on_event=handle_event)
-
-    This function:
-    - runs the async generator `run_streaming(...)` inside asyncio.run
-    - forwards each event to the provided `on_event` callback
+    Sync wrapper around the async streaming API.
     """
 
     async def _driver():

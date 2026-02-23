@@ -6,7 +6,7 @@ Usage:
 
 Assumes:
     - llm_with_mcp.py is in the same directory
-    - exports: run, run_streaming_sync, StreamEvent, AgentWithMCP, build_system_prompt
+    - exports: run, AgentWithMCP, build_system_prompt
 """
 
 import sys
@@ -17,8 +17,6 @@ from langchain_core.messages import SystemMessage, HumanMessage
 
 from llm_with_mcp import (
     run,
-    run_streaming_sync,
-    StreamEvent,
     AgentWithMCP,
     build_system_prompt,
 )
@@ -46,61 +44,6 @@ async def test_non_streaming():
 
     print("\n[METADATA]")
     print(json.dumps(metadata, indent=2, ensure_ascii=False))
-
-
-# -------------------------
-# 2) Streaming test (simulated final answer)
-# -------------------------
-def test_streaming():
-    question = QUESTION
-    history = []
-
-    print("\n=== STREAMING TEST (CURRENT answer_streaming) ===")
-    print(f"[USER] {question}\n")
-    print("[ASSISTANT] ", end="", flush=True)
-
-    final_counter = {"count": 0}
-
-    def handle_event(ev: StreamEvent):
-        t = ev["type"]
-
-        if t == "start":
-            # already printed the question above
-            pass
-
-        elif t == "tool_call":
-            # temporarily break the assistant line to show the tool call
-            print("\n[TOOL_CALL]", ev["tool"], ev["args"])
-            print("[ASSISTANT] ", end="", flush=True)
-
-        elif t == "tool_result":
-            print("\n[TOOL_RESULT]", ev["tool"])
-            print("[ASSISTANT] ", end="", flush=True)
-
-        elif t == "tool_error":
-            print("\n[TOOL_ERROR]", ev["tool"], "->", ev["payload"])
-            print("[ASSISTANT] ", end="", flush=True)
-
-        elif t == "answer_chunk":
-            chunk = ev.get("payload", "")
-            sys.stdout.write(chunk)
-            sys.stdout.flush()
-
-        elif t == "final_answer":
-            final_counter["count"] += 1
-            print("\n\n[FINAL ANSWER RECEIVED]")
-            print(ev["answer"])
-            # If you want to inspect metadata, uncomment:
-            # print("\n[METADATA]", json.dumps(ev.get("metadata", {}), indent=2, ensure_ascii=False))
-
-        else:
-            print("\n[UNKNOWN EVENT]", ev)
-
-    run_streaming_sync(
-        question=question,
-        history=history,
-        on_event=handle_event,
-    )
 
 
 # -------------------------
@@ -191,10 +134,6 @@ async def test_stream_final_from_tools():
 if __name__ == "__main__":
     # 1) Test non-streaming
     # asyncio.run(test_non_streaming())
-    print()
-
-    # 2) Test streaming with current answer_streaming (simulated final chunking)
-    # test_streaming()
     print()
 
     # 3) Test true streaming of the final answer, using tool_results

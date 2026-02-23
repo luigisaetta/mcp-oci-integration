@@ -9,6 +9,7 @@ Streaming responses are supported, with tool call events displayed in real-time.
 """
 
 import asyncio
+import os
 from typing import Dict, Any
 import traceback
 
@@ -20,7 +21,10 @@ from config import MODEL_LIST, UI_TITLE, ENABLE_JWT_TOKEN
 from mcp_servers_config import MCP_SERVERS_CONFIG
 
 from llm_with_mcp import AgentWithMCP, default_jwt_supplier
-from citation_utils import extract_citations_from_metadata, render_citations_markdown
+from citation_utils import (
+    extract_citations_from_metadata,
+    render_citations_markdown_i18n,
+)
 from utils import get_console_logger
 
 logger = get_console_logger()
@@ -35,6 +39,23 @@ def get_username():
     """Get the authenticated username from Streamlit headers, if available."""
     headers = st.context.headers
     return headers.get("X-Auth-User")
+
+
+def get_ui_lang() -> str:
+    """
+    Resolve UI language:
+    1) UI_LANG env var ("it" / "en")
+    2) Browser Accept-Language
+    3) fallback "en"
+    """
+    env_lang = (os.getenv("UI_LANG", "") or "").strip().lower()
+    if env_lang in {"it", "en"}:
+        return env_lang
+
+    accept = (st.context.headers.get("Accept-Language", "") or "").lower()
+    if accept.startswith("it") or ",it" in accept:
+        return "it"
+    return "en"
 
 
 def _extract_text_from_pdf(uploaded_file) -> str:
@@ -70,6 +91,7 @@ if "last_metadata" not in st.session_state:
 answer_metadata = st.session_state.last_metadata
 
 USER = get_username()
+UI_LANG = get_ui_lang()
 logger.info("Authenticated user: %s", USER)
 
 # ---------- Sidebar ----------
@@ -176,7 +198,7 @@ for msg in st.session_state.chat:
         st.write(msg.get("content", ""))
         citations = msg.get("citations") or []
         if citations:
-            st.markdown(render_citations_markdown(citations))
+            st.markdown(render_citations_markdown_i18n(citations, UI_LANG))
 
 
 # ---------- Streaming logic ----------
@@ -240,7 +262,9 @@ def run_query_with_streaming(prompt: str):
 
                 final_answer_placeholder.markdown(answer_text)
                 if citations:
-                    assistant_container.markdown(render_citations_markdown(citations))
+                    assistant_container.markdown(
+                        render_citations_markdown_i18n(citations, UI_LANG)
+                    )
                 history.append(
                     {
                         "role": "assistant",
